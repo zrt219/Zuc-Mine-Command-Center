@@ -12,7 +12,7 @@
 
 ## 🔴 Live Demo
 
-**[View Dashboard →](https://yourusername.github.io/zuc-mine-command-center)**
+**[View Dashboard →](http://zuc-dashboard.surge.sh/)**
 
 **Contract on Explorer →** [0x22ACA8...97bE31](https://explorer.testnet.xrplevm.org/address/0x22ACA8269801bF50d96c7e7F296c11799597bE31)
 
@@ -198,16 +198,16 @@ forge create ZUCMine.sol:ZUCMine \
 
 ---
 
-## Related Projects
-
-All built on XRPL EVM Testnet:
-
-| Project | Description |
-|---------|-------------|
-| [U235 Fuel Cycle Pipeline](../u235-fuel-cycle) | Uranium processing pipeline — 6-stage manufacturing contract |
-| [Dark Matter Yield Farm](../dark-matter-farm) | Black hole staking protocol with quantum yield mechanics |
-| [COHR Lab Simulator](../cohr-lab) | Coherent Corp photonics fab — batch pipeline on-chain |
-| [Black Hole Observatory](../black-hole-observatory) | 3-contract deep space station — ship, registry, mission control |
+## Coming Soon
+ 
+More projects being built on XRPL EVM Testnet:
+ 
+| Project | Description | Status |
+|---------|-------------|--------|
+| U235 Fuel Cycle Pipeline | Uranium processing pipeline — 6-stage manufacturing contract | 🔜 Coming Soon |
+| Dark Matter Yield Farm | Black hole staking protocol with quantum yield mechanics | 🔜 Coming Soon |
+| COHR Lab Simulator | Coherent Corp photonics fab — batch pipeline on-chain | 🔜 Coming Soon |
+| Black Hole Observatory | 3-contract deep space station — ship, registry, mission control | 🔜 Coming Soon ||
 
 ---
 
