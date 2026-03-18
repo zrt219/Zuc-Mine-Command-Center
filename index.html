@@ -1,0 +1,1946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZUC Mine — Command Center</title>
+<meta name="description" content="ZUC Mining Operations Dashboard — XRPL EVM Sidechain">
+<meta property="og:title" content="ZUC Mine Command Center">
+<meta property="og:description" content="Real-time blockchain mining dashboard on XRPL EVM">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⛏</text></svg>">
+<script src="https://unpkg.com/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+:root{
+  --bg:#030508;--s1:#080D15;--s2:#0C1420;
+  --b0:rgba(0,255,184,.07);--bn:rgba(0,255,184,.35);
+  --tx:#C8F0E8;--mu:#3A6055;
+  --neon:#00FFB8;--neon2:#00D4FF;--neon3:#FF3CAC;
+  --amb:#FFB830;--red:#FF2D55;--pur:#A855F7;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--tx);font-family:'Rajdhani',sans-serif;min-height:100vh;overflow-x:hidden}
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@300;400;500;600&display=swap');
+
+/* scanlines */
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;background:repeating-linear-gradient(to bottom,rgba(255,255,255,.022),rgba(255,255,255,.022) 1px,transparent 1px,transparent 3px);mix-blend-mode:overlay;opacity:.18}
+
+/* grid floor */
+.grid-floor{position:fixed;bottom:0;left:0;width:100%;height:50%;background:linear-gradient(rgba(0,255,184,.13) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,184,.13) 1px,transparent 1px);background-size:48px 48px;transform:perspective(700px) rotateX(58deg);transform-origin:bottom;opacity:.2;pointer-events:none;z-index:0;animation:gridDrift 18s linear infinite}
+@keyframes gridDrift{0%{background-position:0 0}100%{background-position:0 48px}}
+
+/* bg grid */
+.grid-bg{position:fixed;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(0,255,184,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,184,.02) 1px,transparent 1px);background-size:44px 44px}
+
+/* depth glow */
+.depth-glow{position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(circle at 15% 35%,rgba(56,189,248,.15),transparent 45%),radial-gradient(circle at 85% 65%,rgba(168,85,247,.15),transparent 45%),radial-gradient(circle at 50% 95%,rgba(0,255,184,.15),transparent 40%);filter:blur(50px);animation:depthShift 22s ease-in-out infinite alternate}
+@keyframes depthShift{0%{opacity:.45}50%{opacity:.75}100%{opacity:.45}}
+
+/* beams */
+.beams{position:fixed;inset:0;pointer-events:none;z-index:1;overflow:hidden}
+.beam{position:absolute;top:-5%;width:1px;height:62vh;transform-origin:top center;animation:sweep linear infinite}
+.beam::after{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:90px;height:100%;background:inherit;filter:blur(32px);opacity:.22}
+.b1{left:7%;background:linear-gradient(180deg,rgba(0,255,184,.85) 0%,transparent 100%);animation-duration:8s}
+.b2{left:27%;background:linear-gradient(180deg,rgba(0,212,255,.75) 0%,transparent 100%);animation-duration:11s;animation-delay:-3.2s}
+.b3{left:52%;background:linear-gradient(180deg,rgba(255,60,172,.75) 0%,transparent 100%);animation-duration:9s;animation-delay:-6s}
+.b4{left:76%;background:linear-gradient(180deg,rgba(255,184,48,.65) 0%,transparent 100%);animation-duration:13s;animation-delay:-2s}
+.b5{left:92%;background:linear-gradient(180deg,rgba(168,85,247,.65) 0%,transparent 100%);animation-duration:10s;animation-delay:-4.5s}
+@keyframes sweep{0%{transform:rotate(-22deg);opacity:0}8%{opacity:1}50%{transform:rotate(22deg)}92%{opacity:1}100%{transform:rotate(-22deg);opacity:0}}
+
+.app{position:relative;z-index:2;max-width:1440px;margin:0 auto;padding:18px 20px 80px}
+
+/* chain warning banner */
+.chain-warn{display:none;background:rgba(255,45,85,.1);border:1px solid rgba(255,45,85,.4);border-radius:4px;padding:10px 18px;margin-bottom:12px;font-family:'Orbitron',monospace;font-size:10px;letter-spacing:.1em;color:var(--red);text-align:center}
+.chain-warn.show{display:block}
+
+/* metamask missing */
+.no-mm{display:none;background:rgba(255,184,48,.08);border:1px solid rgba(255,184,48,.3);border-radius:4px;padding:12px 18px;margin-bottom:12px;font-size:13px;color:var(--amb);text-align:center}
+.no-mm.show{display:block}
+.no-mm a{color:var(--amb);text-decoration:underline}
+
+/* header */
+header{display:flex;justify-content:space-between;align-items:center;padding:14px 22px;margin-bottom:14px;border:1px solid rgba(0,255,184,.22);border-radius:4px;background:rgba(3,5,8,.85);position:relative;overflow:hidden;backdrop-filter:blur(10px)}
+header::before{content:'';position:absolute;top:0;left:-100%;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--neon) 30%,var(--neon2) 60%,var(--neon3) 85%,transparent);animation:headerScan 4s linear infinite}
+@keyframes headerScan{0%{left:-100%}100%{left:100%}}
+header::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(0,255,184,.3),transparent)}
+.logo-sub{font-size:9px;letter-spacing:.34em;color:var(--neon);text-transform:uppercase;opacity:.55;margin-bottom:3px;font-family:'Rajdhani',sans-serif}
+.logo-main{font-family:'Orbitron',monospace;font-size:26px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;text-shadow:0 0 30px rgba(0,255,184,.6),0 0 60px rgba(0,255,184,.2)}
+.logo-main em{color:var(--neon);font-style:normal}
+.hdr-right{display:flex;align-items:center;gap:16px}
+.wi{text-align:right}
+.wl{font-size:9px;letter-spacing:.22em;color:var(--mu);text-transform:uppercase;margin-bottom:2px;font-family:'Rajdhani',sans-serif}
+.wa{font-family:'Orbitron',monospace;font-size:11px;color:var(--neon)}
+.cbtn{font-family:'Orbitron',monospace;font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;padding:10px 22px;background:transparent;border:1px solid var(--neon);color:var(--neon);cursor:pointer;border-radius:3px;position:relative;overflow:hidden;transition:color .2s,box-shadow .2s;box-shadow:0 0 10px rgba(0,255,184,.1)}
+.cbtn::before{content:'';position:absolute;inset:0;background:var(--neon);transform:scaleX(0);transform-origin:left;transition:transform .25s;z-index:-1}
+.cbtn:hover{color:#000;box-shadow:0 0 30px rgba(0,255,184,.5)}
+.cbtn:hover::before{transform:scaleX(1)}
+.cbtn.on{background:rgba(0,255,184,.08)}
+.cbtn:disabled{opacity:.4;cursor:not-allowed}
+
+/* metric cards */
+.top-row{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:12px}
+.mcard{background:rgba(8,13,21,.88);border:1px solid var(--b0);border-radius:4px;padding:12px 14px;position:relative;overflow:hidden;transition:border-color .3s,box-shadow .3s;backdrop-filter:blur(8px)}
+.mcard::before{content:'';position:absolute;inset:-1px;border-radius:inherit;background:linear-gradient(120deg,transparent,rgba(56,189,248,.5),rgba(0,255,184,.5),rgba(168,85,247,.5),transparent);opacity:0;transition:.35s;z-index:-1;filter:blur(8px)}
+.mcard:hover::before{opacity:.55}
+.mcard:hover{border-color:rgba(0,255,184,.3)}
+.mcard::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px}
+.mc-g::after{background:var(--neon);box-shadow:0 0 10px var(--neon)}
+.mc-b::after{background:var(--neon2);box-shadow:0 0 10px var(--neon2)}
+.mc-p::after{background:var(--neon3);box-shadow:0 0 10px var(--neon3)}
+.mc-a::after{background:var(--amb);box-shadow:0 0 10px var(--amb)}
+.mc-pu::after{background:var(--pur);box-shadow:0 0 10px var(--pur)}
+.mc-r::after{background:var(--red);box-shadow:0 0 10px var(--red)}
+.mlbl{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--mu);margin-bottom:6px;font-family:'Rajdhani',sans-serif}
+.mval{font-family:'Orbitron',monospace;font-size:15px;font-weight:700;line-height:1.2}
+.cv-g{color:var(--neon);text-shadow:0 0 14px rgba(0,255,184,.7)}
+.cv-b{color:var(--neon2);text-shadow:0 0 14px rgba(0,212,255,.7)}
+.cv-p{color:var(--neon3);text-shadow:0 0 14px rgba(255,60,172,.7)}
+.cv-a{color:var(--amb);text-shadow:0 0 14px rgba(255,184,48,.7)}
+.cv-pu{color:var(--pur);text-shadow:0 0 14px rgba(168,85,247,.7)}
+.mval.sm{font-size:10px;margin-top:2px}
+@keyframes metricPulse{0%{box-shadow:0 0 0 rgba(0,255,184,0)}40%{box-shadow:0 0 18px rgba(0,255,184,.7),0 0 36px rgba(0,212,255,.35)}100%{box-shadow:0 0 0 rgba(0,255,184,0)}}
+.mcard.updated{animation:metricPulse .9s ease}
+
+/* section label */
+.slbl{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--neon);opacity:.6;margin:16px 0 8px;display:flex;align-items:center;gap:10px}
+.slbl::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(0,255,184,.32),transparent)}
+
+/* panels */
+.panel{background:rgba(8,13,21,.9);border:1px solid var(--b0);border-radius:6px;padding:18px;position:relative;overflow:hidden;transition:border-color .3s,box-shadow .3s;backdrop-filter:blur(10px)}
+.panel::before{content:'';position:absolute;inset:-1px;border-radius:inherit;background:linear-gradient(120deg,transparent 20%,rgba(56,189,248,.55),rgba(0,255,184,.55),rgba(168,85,247,.55),transparent 80%);opacity:0;transition:.35s;z-index:-1;filter:blur(10px)}
+.panel:hover::before{opacity:.5}
+.panel:hover{border-color:rgba(0,255,184,.22);box-shadow:0 0 30px rgba(0,255,184,.04)}
+.panel.wp{border-color:rgba(255,60,172,.12)}
+.panel.wp::before{background:linear-gradient(120deg,transparent 20%,rgba(255,60,172,.55),rgba(168,85,247,.5),transparent 80%)}
+.panel.wp:hover{border-color:rgba(255,60,172,.28);box-shadow:0 0 30px rgba(255,60,172,.05)}
+.panel::after{content:'';position:absolute;bottom:0;right:0;width:18px;height:18px;border-right:1px solid rgba(0,255,184,.22);border-bottom:1px solid rgba(0,255,184,.22)}
+.panel.wp::after{border-color:rgba(255,60,172,.22)}
+
+.pbadge{display:inline-flex;align-items:center;gap:4px;font-size:9px;letter-spacing:.18em;text-transform:uppercase;padding:2px 7px;border-radius:2px;margin-bottom:8px;font-family:'Rajdhani',sans-serif}
+.br{background:rgba(0,255,184,.07);border:1px solid rgba(0,255,184,.2);color:var(--neon)}
+.bw{background:rgba(255,60,172,.07);border:1px solid rgba(255,60,172,.2);color:var(--neon3)}
+.bn2{background:rgba(168,85,247,.07);border:1px solid rgba(168,85,247,.2);color:var(--pur)}
+.ptitle{font-family:'Orbitron',monospace;font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--tx);margin-bottom:12px}
+.fl{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--mu);margin-bottom:4px;font-family:'Rajdhani',sans-serif}
+.gap{height:8px}
+
+input{width:100%;padding:8px 10px;background:rgba(0,0,0,.6);border:1px solid rgba(0,255,184,.12);border-radius:3px;color:var(--tx);font-family:'Rajdhani',sans-serif;font-size:13px;outline:none;margin-bottom:7px;transition:border-color .2s,box-shadow .2s}
+input:focus{border-color:rgba(0,255,184,.45);box-shadow:0 0 12px rgba(0,255,184,.1)}
+input::placeholder{color:var(--mu)}
+input:disabled{opacity:.4;cursor:not-allowed}
+.wp input{border-color:rgba(255,60,172,.12)}
+.wp input:focus{border-color:rgba(255,60,172,.4);box-shadow:0 0 12px rgba(255,60,172,.1)}
+
+.btn{width:100%;padding:8px 12px;border-radius:3px;border:1px solid;font-family:'Orbitron',monospace;font-size:9px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:all .2s;margin-top:2px;position:relative;overflow:hidden}
+.btn::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.06),transparent);transform:translateX(-100%);transition:transform .4s}
+.btn:not(:disabled):hover::after{transform:translateX(100%)}
+.btn-r{border-color:var(--neon);color:var(--neon);background:rgba(0,255,184,.04)}
+.btn-r:not(:disabled):hover{background:rgba(0,255,184,.12);box-shadow:0 0 20px rgba(0,255,184,.25)}
+.btn-w{border-color:var(--neon3);color:var(--neon3);background:rgba(255,60,172,.04)}
+.btn-w:not(:disabled):hover{background:rgba(255,60,172,.12);box-shadow:0 0 20px rgba(255,60,172,.25)}
+.btn-d{border-color:var(--red);color:var(--red);background:rgba(255,45,85,.04)}
+.btn-d:not(:disabled):hover{background:rgba(255,45,85,.12);box-shadow:0 0 20px rgba(255,45,85,.25)}
+.btn:active:not(:disabled){transform:scale(.97)}
+.btn:disabled{opacity:.25;cursor:not-allowed}
+
+.out{margin-top:8px;background:rgba(0,0,0,.55);border:1px solid rgba(0,255,184,.07);border-radius:3px;padding:9px 11px;min-height:46px;font-family:'Rajdhani',sans-serif;font-size:12px;color:var(--mu);line-height:1.9}
+.or{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid rgba(0,255,184,.04);padding:1px 0}
+.or:last-child{border-bottom:none}
+.ok2{color:var(--mu);font-size:11px}
+.ov{color:var(--neon);font-weight:600;font-family:'Orbitron',monospace;font-size:10px}
+.ov.pk{color:var(--neon3)}
+.ov.link{color:var(--neon2);cursor:pointer;text-decoration:underline dotted}
+.sm2{font-size:11px;padding:8px 0;text-align:center}
+.sm2.ok3{color:var(--neon)}.sm2.er{color:var(--red)}.sm2.pn{color:var(--amb);animation:blk .9s infinite}
+@keyframes blk{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* tx lifecycle */
+.tx-steps{display:flex;flex-direction:column;gap:5px;margin-top:10px}
+.tx-step{display:flex;align-items:center;gap:10px;padding:6px 10px;background:rgba(0,0,0,.4);border:1px solid rgba(0,255,184,.06);border-radius:3px;font-family:'Orbitron',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--mu);transition:all .3s}
+.tx-step.active{border-color:rgba(255,184,48,.45);color:var(--amb);background:rgba(255,184,48,.06);box-shadow:0 0 10px rgba(255,184,48,.1)}
+.tx-step.done{border-color:rgba(0,255,184,.35);color:var(--neon);background:rgba(0,255,184,.05);box-shadow:0 0 10px rgba(0,255,184,.1)}
+.tx-step.fail{border-color:rgba(255,45,85,.35);color:var(--red);background:rgba(255,45,85,.05)}
+.step-dot{width:7px;height:7px;border-radius:50%;background:currentColor;flex-shrink:0;box-shadow:0 0 6px currentColor}
+.tx-step.active .step-dot{animation:blk .7s infinite}
+.gas-preview{margin-top:8px;padding:8px 10px;background:rgba(0,0,0,.4);border:1px solid rgba(255,184,48,.18);border-radius:3px;font-family:'Orbitron',monospace;font-size:10px;color:var(--amb)}
+.gas-row{display:flex;justify-content:space-between;padding:2px 0;font-size:9px;letter-spacing:.08em}
+.gas-lbl{color:var(--mu)}
+
+/* intelligence scan progress */
+.scan-progress{display:none;margin-top:8px;padding:8px 10px;background:rgba(0,0,0,.4);border:1px solid rgba(0,255,184,.15);border-radius:3px}
+.scan-progress.show{display:block}
+.scan-bar-wrap{height:3px;background:rgba(0,255,184,.1);border-radius:2px;overflow:hidden;margin-bottom:6px}
+.scan-bar{height:100%;background:var(--neon);box-shadow:0 0 6px var(--neon);border-radius:2px;transition:width .3s;width:0%}
+.scan-label{font-family:'Orbitron',monospace;font-size:9px;color:var(--mu);letter-spacing:.1em}
+
+/* layout */
+.row2{display:grid;gap:10px}
+.cols-3{grid-template-columns:1fr 1fr 1fr}
+.cols-4{grid-template-columns:repeat(4,1fr)}
+.cols-net{grid-template-columns:310px 1fr}
+.cols-mine{grid-template-columns:1fr 1fr 1.2fr}
+.cols-intel{grid-template-columns:1fr 1fr 1.2fr}
+
+/* network */
+.net-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.net-item{background:rgba(0,0,0,.45);border:1px solid var(--b0);border-radius:3px;padding:10px 12px}
+.ni-lbl{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--mu);margin-bottom:4px;font-family:'Rajdhani',sans-serif}
+.ni-val{font-family:'Orbitron',monospace;font-size:14px;font-weight:700}
+.health-bar{margin-top:10px;height:3px;background:rgba(0,255,184,.1);border-radius:2px;overflow:hidden}
+.health-fill{height:100%;border-radius:2px;transition:width .5s,background .5s}
+.ch-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(0,255,184,.04);font-size:12px}
+.ch-row:last-child{border-bottom:none}
+.ch-k{color:var(--mu);font-size:11px;letter-spacing:.08em;font-family:'Rajdhani',sans-serif}
+.ch-v{font-family:'Orbitron',monospace;font-size:10px;color:var(--neon)}
+.status-pill{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:10px;font-size:9px;letter-spacing:.1em;font-family:'Orbitron',monospace}
+.sp-on{background:rgba(0,255,184,.1);border:1px solid rgba(0,255,184,.25);color:var(--neon)}
+.sp-off{background:rgba(255,45,85,.1);border:1px solid rgba(255,45,85,.25);color:var(--red)}
+
+/* live feed */
+.feed-body{max-height:218px;overflow-y:auto;padding:4px 0}
+.feed-body::-webkit-scrollbar{width:2px}
+.feed-body::-webkit-scrollbar-thumb{background:rgba(0,255,184,.3);border-radius:2px}
+.feed-item{display:flex;align-items:flex-start;gap:10px;padding:7px 14px;border-bottom:1px solid rgba(0,255,184,.03);font-size:12px;animation:fadeSlide .4s ease}
+@keyframes fadeSlide{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.fi-icon{font-size:14px;flex-shrink:0;margin-top:1px}
+.fi-body{flex:1}
+.fi-title{color:var(--tx);font-weight:600;font-size:13px}
+.fi-sub{color:var(--mu);font-size:11px;margin-top:1px}
+.fi-time{font-family:'Orbitron',monospace;font-size:9px;color:var(--mu);flex-shrink:0;margin-top:2px}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--red);box-shadow:0 0 10px var(--red),0 0 20px rgba(255,45,85,.4);animation:blk 1s infinite;flex-shrink:0}
+
+/* 3D mine map */
+.mine-map-wrap{position:relative;width:100%;height:320px;background:rgba(0,0,0,.6);border-radius:4px;overflow:hidden}
+#mineMapCanvas{display:block}
+.mine-info-overlay{position:absolute;top:10px;right:10px;z-index:10;background:rgba(3,5,8,.9);border:1px solid rgba(0,255,184,.25);border-radius:4px;padding:10px 14px;min-width:160px;display:none;backdrop-filter:blur(10px)}
+.mio-title{font-family:'Orbitron',monospace;color:var(--neon);margin-bottom:6px;font-size:11px;font-weight:600}
+.mio-row{display:flex;justify-content:space-between;gap:12px;font-size:9px;letter-spacing:.08em;padding:2px 0;font-family:'Rajdhani',sans-serif}
+.mio-k{color:var(--mu)}
+.mio-v{color:var(--tx);font-family:'Orbitron',monospace;font-size:9px}
+.mine-legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px}
+.mine-leg-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--mu);font-family:'Rajdhani',sans-serif}
+.mine-leg-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+
+/* heatmap */
+.hm-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(0,255,184,.04)}
+.hm-row:last-child{border-bottom:none}
+.hm-lbl{font-family:'Orbitron',monospace;font-size:9px;color:var(--mu);width:68px;flex-shrink:0}
+.hm-wrap{flex:1;height:14px;background:rgba(0,255,184,.05);border-radius:2px;overflow:hidden}
+.hm-bar{height:100%;border-radius:2px;transition:width .9s ease;overflow:hidden;position:relative}
+.hm-bar::after{content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent);animation:hmSheen 3s infinite}
+@keyframes hmSheen{0%{left:-60%}100%{left:120%}}
+.hm-val{font-family:'Orbitron',monospace;font-size:9px;color:var(--neon);min-width:60px;text-align:right}
+.hm-empty{text-align:center;color:var(--mu);font-size:12px;padding:20px 0;font-family:'Rajdhani',sans-serif}
+
+/* leaderboard */
+.lb-row{display:flex;align-items:center;gap:10px;padding:7px 10px;background:rgba(0,0,0,.4);border:1px solid rgba(0,255,184,.05);border-radius:3px;margin-bottom:5px;transition:border-color .2s}
+.lb-row:hover{border-color:rgba(0,255,184,.22)}
+.lb-rank{font-family:'Orbitron',monospace;font-size:11px;font-weight:700;width:22px;flex-shrink:0}
+.r1{color:var(--amb)}.r2{color:#C0C0C0}.r3{color:#CD7F32}.rn{color:var(--mu)}
+.lb-name{flex:1;font-size:14px;font-weight:600;color:var(--tx);font-family:'Rajdhani',sans-serif}
+.lb-bwrap{width:80px;height:4px;background:rgba(0,255,184,.1);border-radius:2px;overflow:hidden}
+.lb-bar{height:100%;background:var(--neon);box-shadow:0 0 8px var(--neon);border-radius:2px;transition:width .7s ease}
+.lb-ore{font-family:'Orbitron',monospace;font-size:10px;color:var(--neon);min-width:62px;text-align:right}
+
+/* intel */
+.intel-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.istat{background:rgba(0,0,0,.45);border:1px solid var(--b0);border-radius:3px;padding:10px 12px}
+.is-lbl{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--mu);margin-bottom:4px;font-family:'Rajdhani',sans-serif}
+.is-val{font-family:'Orbitron',monospace;font-size:16px;font-weight:700}
+.chart-wrap{position:relative;width:100%;height:160px}
+
+/* log */
+.logpanel{margin-top:12px;background:rgba(8,13,21,.9);border:1px solid var(--b0);border-radius:6px;overflow:hidden;backdrop-filter:blur(10px)}
+.loghd{display:flex;align-items:center;gap:10px;padding:8px 16px;border-bottom:1px solid var(--b0);font-family:'Orbitron',monospace;font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--mu)}
+.logscroll{max-height:110px;overflow-y:auto;padding:3px 0}
+.logscroll::-webkit-scrollbar{width:2px}
+.logscroll::-webkit-scrollbar-thumb{background:rgba(0,255,184,.25);border-radius:2px}
+.logrow{display:flex;gap:12px;padding:3px 16px;font-family:'Rajdhani',sans-serif;font-size:11px;border-bottom:1px solid rgba(0,255,184,.02)}
+.lt2{color:var(--mu);flex-shrink:0;font-variant-numeric:tabular-nums}
+.lm2{color:var(--tx)}
+.lm2.ok{color:var(--neon)}.lm2.er{color:var(--red)}.lm2.wn{color:var(--amb)}.lm2.if{color:var(--neon2)}
+
+/* hint arrow */
+.hint-arrow{display:flex;align-items:center;gap:8px;padding:10px 14px;background:rgba(0,255,184,.04);border:1px dashed rgba(0,255,184,.2);border-radius:4px;font-size:12px;color:rgba(0,255,184,.6);margin-bottom:8px;font-family:'Rajdhani',sans-serif}
+
+/* ── NETWORK GLOBE ── */
+.globe-section{margin-bottom:12px}
+.globe-outer{
+  position:relative;width:100%;height:520px;
+  background:radial-gradient(ellipse 80% 80% at 50% 50%,rgba(0,20,30,.95),rgba(3,5,8,.98));
+  border:1px solid rgba(0,255,184,.18);border-radius:8px;overflow:hidden;
+  backdrop-filter:blur(10px);
+}
+.globe-outer::before{
+  content:'';position:absolute;inset:-1px;border-radius:inherit;
+  background:linear-gradient(120deg,transparent 20%,rgba(0,255,184,.4),rgba(0,212,255,.3),rgba(168,85,247,.3),transparent 80%);
+  opacity:0;transition:.4s;z-index:-1;filter:blur(12px);
+}
+.globe-outer:hover::before{opacity:.6}
+.globe-outer::after{
+  content:'';position:absolute;inset:0;border-radius:inherit;
+  background:radial-gradient(ellipse 60% 40% at 50% 50%,rgba(0,255,184,.04),transparent 70%);
+  pointer-events:none;z-index:1;
+}
+#globeCanvas{display:block;width:100%!important;height:100%!important}
+.globe-hud{
+  position:absolute;top:18px;left:22px;z-index:10;
+  pointer-events:none;
+}
+.globe-title{
+  font-family:'Orbitron',monospace;font-size:11px;font-weight:700;
+  letter-spacing:.22em;text-transform:uppercase;
+  color:var(--neon);text-shadow:0 0 20px rgba(0,255,184,.6);
+  margin-bottom:4px;
+}
+.globe-sub{font-family:'Rajdhani',sans-serif;font-size:10px;letter-spacing:.18em;color:var(--mu);text-transform:uppercase}
+.globe-stats{
+  position:absolute;top:18px;right:22px;z-index:10;
+  display:flex;flex-direction:column;gap:6px;pointer-events:none;
+}
+.gstat{
+  background:rgba(3,5,8,.8);border:1px solid rgba(0,255,184,.15);
+  border-radius:3px;padding:6px 12px;text-align:right;
+  backdrop-filter:blur(8px);
+}
+.gstat-lbl{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--mu);margin-bottom:2px;font-family:'Rajdhani',sans-serif}
+.gstat-val{font-family:'Orbitron',monospace;font-size:13px;font-weight:700}
+.globe-legend{
+  position:absolute;bottom:18px;left:22px;z-index:10;
+  display:flex;gap:18px;pointer-events:none;
+}
+.gl-item{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--mu);font-family:'Rajdhani',sans-serif}
+.gl-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.globe-tooltip{
+  position:absolute;z-index:20;
+  background:rgba(3,5,8,.92);border:1px solid rgba(0,255,184,.28);
+  border-radius:4px;padding:8px 12px;pointer-events:none;
+  display:none;backdrop-filter:blur(10px);min-width:130px;
+}
+.gt-title{font-family:'Orbitron',monospace;font-size:10px;font-weight:600;color:var(--neon);margin-bottom:4px}
+.gt-row{display:flex;justify-content:space-between;gap:10px;font-size:10px;padding:1px 0;font-family:'Rajdhani',sans-serif}
+.gt-k{color:var(--mu)}.gt-v{color:var(--tx);font-family:'Orbitron',monospace;font-size:9px}
+.globe-ctrl{
+  position:absolute;bottom:18px;right:22px;z-index:10;
+  display:flex;gap:8px;
+}
+.gctrl-btn{
+  font-family:'Orbitron',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;
+  padding:5px 10px;background:rgba(0,0,0,.5);border:1px solid rgba(0,255,184,.2);
+  color:var(--mu);cursor:pointer;border-radius:3px;transition:all .2s;
+}
+.gctrl-btn:hover{border-color:var(--neon);color:var(--neon);box-shadow:0 0 10px rgba(0,255,184,.2)}
+.gctrl-btn.active{border-color:var(--neon);color:var(--neon);background:rgba(0,255,184,.06)}
+
+/* pulse ring for active tx node */
+@keyframes ringPulse{0%{transform:scale(1);opacity:.8}100%{transform:scale(2.5);opacity:0}}
+
+/* ── GEOLOGY VIEWER ── */
+.geo-outer{
+  position:relative;width:100%;height:500px;
+  background:radial-gradient(ellipse 70% 70% at 50% 30%,rgba(0,8,18,.97),rgba(3,5,8,.99));
+  border:1px solid rgba(0,212,255,.18);border-radius:8px;overflow:hidden;
+  backdrop-filter:blur(10px);margin-bottom:12px;
+}
+.geo-outer::before{
+  content:'';position:absolute;inset:-1px;border-radius:inherit;
+  background:linear-gradient(120deg,transparent 20%,rgba(0,212,255,.35),rgba(0,255,184,.25),rgba(168,85,247,.3),transparent 80%);
+  opacity:0;transition:.4s;z-index:-1;filter:blur(12px);
+}
+.geo-outer:hover::before{opacity:.5}
+#geoCanvas{display:block;width:100%!important;height:100%!important}
+.geo-hud-left{position:absolute;top:18px;left:22px;z-index:10;pointer-events:none}
+.geo-title{font-family:'Orbitron',monospace;font-size:11px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--neon2);text-shadow:0 0 20px rgba(0,212,255,.6);margin-bottom:4px}
+.geo-subtitle{font-family:'Rajdhani',sans-serif;font-size:10px;letter-spacing:.14em;color:var(--mu);text-transform:uppercase}
+.geo-hud-right{position:absolute;top:18px;right:22px;z-index:10;display:flex;flex-direction:column;gap:6px;pointer-events:none}
+.geostat{background:rgba(3,5,8,.82);border:1px solid rgba(0,212,255,.14);border-radius:3px;padding:6px 12px;text-align:right;backdrop-filter:blur(8px)}
+.geostat-l{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--mu);margin-bottom:2px;font-family:'Rajdhani',sans-serif}
+.geostat-v{font-family:'Orbitron',monospace;font-size:12px;font-weight:700}
+.geo-tooltip{position:absolute;z-index:20;background:rgba(3,5,8,.93);border:1px solid rgba(0,212,255,.3);border-radius:4px;padding:10px 14px;pointer-events:none;display:none;backdrop-filter:blur(10px);min-width:150px}
+.geo-tt-title{font-family:'Orbitron',monospace;font-size:10px;font-weight:600;color:var(--neon2);margin-bottom:5px}
+.geo-tt-row{display:flex;justify-content:space-between;gap:10px;font-size:10px;padding:1px 0;font-family:'Rajdhani',sans-serif}
+.geo-tt-k{color:var(--mu)}.geo-tt-v{color:var(--tx);font-family:'Orbitron',monospace;font-size:9px}
+.geo-legend{position:absolute;bottom:18px;left:22px;z-index:10;display:flex;gap:16px;pointer-events:none}
+.geo-leg-item{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--mu);font-family:'Rajdhani',sans-serif}
+.geo-leg-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.geo-ctrl{position:absolute;bottom:18px;right:22px;z-index:10;display:flex;gap:8px}
+.geo-btn{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:5px 11px;background:rgba(0,0,0,.55);border:1px solid rgba(0,212,255,.2);color:var(--mu);cursor:pointer;border-radius:3px;transition:all .2s}
+.geo-btn:hover{border-color:var(--neon2);color:var(--neon2);box-shadow:0 0 10px rgba(0,212,255,.2)}
+.geo-btn.active{border-color:var(--neon2);color:var(--neon2);background:rgba(0,212,255,.07)}
+
+@media(max-width:1100px){.top-row{grid-template-columns:repeat(3,1fr)}.cols-3,.cols-mine,.cols-intel{grid-template-columns:1fr 1fr}.cols-4{grid-template-columns:1fr 1fr}.cols-net{grid-template-columns:1fr}.globe-outer{height:400px}.geo-outer{height:400px}}
+@media(max-width:700px){.top-row{grid-template-columns:repeat(2,1fr)}.cols-3,.cols-2,.cols-4,.cols-net,.cols-mine,.cols-intel{grid-template-columns:1fr}.logo-main{font-size:20px}.globe-outer{height:320px}.globe-stats{display:none}.geo-outer{height:340px}.geo-hud-right{display:none}}
+</style>
+</head>
+<body>
+<div class="grid-floor"></div>
+<div class="grid-bg"></div>
+<div class="depth-glow"></div>
+<div class="beams"><div class="beam b1"></div><div class="beam b2"></div><div class="beam b3"></div><div class="beam b4"></div><div class="beam b5"></div></div>
+
+<div class="app">
+
+<!-- warnings -->
+<div class="no-mm" id="noMM">⚠ MetaMask not detected. <a href="https://metamask.io" target="_blank">Install MetaMask</a> to use this dashboard.</div>
+<div class="chain-warn" id="chainWarn">⚠ Wrong network detected. Please switch to XRPL EVM Sidechain Testnet (Chain ID: 1449000) in MetaMask.</div>
+
+<!-- header -->
+<header>
+  <div>
+    <div class="logo-sub">⬡ XRP EVM Sidechain — OwnerStorage Contract</div>
+    <div class="logo-main"><em>ZUC</em> Mine Command Center</div>
+  </div>
+  <div class="hdr-right">
+    <div class="wi">
+      <div class="wl">Operator</div>
+      <div class="wa" id="walletAddr">— Not Connected —</div>
+    </div>
+    <button class="cbtn" id="connectBtn">Initialize</button>
+  </div>
+</header>
+
+<!-- metric cards -->
+<div class="top-row">
+  <div class="mcard mc-b" id="mc-block"><div class="mlbl">Block Height</div><div class="mval cv-b" id="blockNum">--</div></div>
+  <div class="mcard mc-g" id="mc-gas"><div class="mlbl">Gas Price</div><div class="mval cv-g" id="gasPrice">--</div></div>
+  <div class="mcard mc-a" id="mc-lat"><div class="mlbl">RPC Latency</div><div class="mval cv-a" id="latency">--</div></div>
+  <div class="mcard mc-p" id="mc-owner"><div class="mlbl">Contract Owner</div><div class="mval cv-p sm" id="ownerMetric">--</div></div>
+  <div class="mcard mc-pu" id="mc-miners"><div class="mlbl">Total Miners</div><div class="mval cv-pu" id="minerCountTop">--</div></div>
+  <div class="mcard mc-r" id="mc-status"><div class="mlbl">Network</div><div class="mval" id="netStatus" style="font-size:11px;color:var(--red)">OFFLINE</div></div>
+</div>
+
+<!-- GLOBE -->
+<div class="slbl">◈ ZUC Network Globe — Live Topology</div>
+<div class="globe-outer" id="globeOuter">
+  <canvas id="globeCanvas"></canvas>
+  <div class="globe-hud">
+    <div class="globe-title">ZUC Network</div>
+    <div class="globe-sub">Live Node Topology · Hover to inspect</div>
+  </div>
+  <div class="globe-stats">
+    <div class="gstat"><div class="gstat-lbl">Mine Nodes</div><div class="gstat-val cv-g" id="g-mines">0</div></div>
+    <div class="gstat"><div class="gstat-lbl">Miner Nodes</div><div class="gstat-val cv-p" id="g-miners">0</div></div>
+    <div class="gstat"><div class="gstat-lbl">Connections</div><div class="gstat-val cv-b" id="g-conns">0</div></div>
+    <div class="gstat"><div class="gstat-lbl">Total Ore</div><div class="gstat-val cv-a" id="g-ore">--</div></div>
+  </div>
+  <div class="globe-legend">
+    <div class="gl-item"><div class="gl-dot" style="background:#00FFB8;box-shadow:0 0 6px #00FFB8"></div>Mine Node</div>
+    <div class="gl-item"><div class="gl-dot" style="background:#FF3CAC;box-shadow:0 0 6px #FF3CAC"></div>Miner Node</div>
+    <div class="gl-item"><div class="gl-dot" style="background:#FFB830;box-shadow:0 0 6px #FFB830"></div>Contract Hub</div>
+    <div class="gl-item"><div class="gl-dot" style="background:#A855F7;box-shadow:0 0 6px #A855F7"></div>Tx Pulse</div>
+  </div>
+  <div class="globe-tooltip" id="globeTooltip">
+    <div class="gt-title" id="gt-title">Node</div>
+    <div class="gt-row"><span class="gt-k">Type</span><span class="gt-v" id="gt-type">--</span></div>
+    <div class="gt-row"><span class="gt-k">ID</span><span class="gt-v" id="gt-id">--</span></div>
+    <div class="gt-row"><span class="gt-k">Value</span><span class="gt-v" id="gt-val">--</span></div>
+  </div>
+  <div class="globe-ctrl">
+    <button class="gctrl-btn active" id="gcRotate">⟳ Rotate</button>
+    <button class="gctrl-btn" id="gcPulse">◉ Pulse</button>
+    <button class="gctrl-btn" id="gcWire">⬡ Wireframe</button>
+  </div>
+</div>
+
+<!-- network + feed -->
+<div class="slbl">◈ Network Intelligence + Live Activity</div>
+<div class="row2 cols-net">
+  <div class="panel">
+    <div class="pbadge bn2">◎ live monitor</div>
+    <div class="ptitle">Network Health</div>
+    <div class="net-grid">
+      <div class="net-item"><div class="ni-lbl">Block</div><div class="ni-val cv-b" id="nm-block">--</div></div>
+      <div class="net-item"><div class="ni-lbl">Gas (gwei)</div><div class="ni-val cv-a" id="nm-gas">--</div></div>
+      <div class="net-item"><div class="ni-lbl">Latency</div><div class="ni-val cv-a" id="nm-lat">--</div></div>
+      <div class="net-item"><div class="ni-lbl">Chain ID</div><div class="ni-val cv-g" id="nm-chain">--</div></div>
+    </div>
+    <div class="health-bar" style="margin-top:10px"><div class="health-fill" id="healthFill" style="width:0%"></div></div>
+    <div style="margin-top:12px">
+      <div class="ch-row"><span class="ch-k">Contract</span><span class="ch-v" style="font-size:9px">0x22AC…bE31</span></div>
+      <div class="ch-row"><span class="ch-k">Functions</span><span class="ch-v">11 active</span></div>
+      <div class="ch-row"><span class="ch-k">Network</span><span class="ch-v">XRPL EVM</span></div>
+      <div class="ch-row"><span class="ch-k">Status</span><span class="ch-v"><span class="status-pill sp-off" id="statusPill">● OFFLINE</span></span></div>
+    </div>
+  </div>
+  <div class="panel">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+      <div class="pbadge br">● live feed</div>
+      <div class="live-dot" style="margin-left:auto"></div>
+      <span style="font-size:9px;letter-spacing:.14em;color:var(--mu);text-transform:uppercase;font-family:'Rajdhani',sans-serif">Streaming</span>
+    </div>
+    <div class="ptitle">Chain Activity</div>
+    <div class="feed-body" id="feedBody">
+      <div class="feed-item"><div class="fi-icon">⚡</div><div class="fi-body"><div class="fi-title">System Initialized</div><div class="fi-sub">Connect wallet to stream live events</div></div><div class="fi-time">--:--:--</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- 3D map + heatmap + leaderboard -->
+<div class="slbl">◈ Mine Intelligence + 3D Spatial Map</div>
+<div class="row2 cols-mine">
+  <div class="panel">
+    <div class="pbadge bn2">◎ 3D spatial · hover nodes</div>
+    <div class="ptitle">Mine Network Map</div>
+    <div class="mine-map-wrap" id="mineMapWrap">
+      <canvas id="mineMapCanvas"></canvas>
+      <div class="mine-info-overlay" id="mineOverlay">
+        <div class="mio-title" id="mio-title">Mine #0</div>
+        <div class="mio-row"><span class="mio-k">Reserves</span><span class="mio-v" id="mio-res">--</span></div>
+        <div class="mio-row"><span class="mio-k">Name</span><span class="mio-v" id="mio-name">--</span></div>
+        <div class="mio-row"><span class="mio-k">Status</span><span class="mio-v cv-g">Active</span></div>
+      </div>
+    </div>
+    <div class="mine-legend">
+      <div class="mine-leg-item"><div class="mine-leg-dot" style="background:#00FFB8;box-shadow:0 0 6px #00FFB8"></div>Mine Node</div>
+      <div class="mine-leg-item"><div class="mine-leg-dot" style="background:#FFB830;box-shadow:0 0 6px #FFB830"></div>High Reserve</div>
+      <div class="mine-leg-item"><div class="mine-leg-dot" style="background:#FF3CAC;box-shadow:0 0 6px #FF3CAC"></div>Miner Satellite</div>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="pbadge br">● heatmap</div>
+    <div class="ptitle">Reserve Heatmap</div>
+    <div class="hint-arrow" id="hmHint">↑ Click "Load Intelligence" above to populate this panel</div>
+    <div id="heatmap"></div>
+    <div style="margin-top:14px"><div class="fl">Chart View</div><div class="chart-wrap"><canvas id="reserveChart"></canvas></div></div>
+  </div>
+  <div class="panel">
+    <div class="pbadge br">● ranked</div>
+    <div class="ptitle">Miner Leaderboard</div>
+    <div class="hint-arrow" id="lbHint">↑ Click "Load Intelligence" above to populate this panel</div>
+    <div id="leaderboard"></div>
+  </div>
+</div>
+
+<!-- analytics -->
+<div class="slbl">◈ Extraction Analytics</div>
+<div class="row2 cols-intel">
+  <div class="panel" style="display:flex;flex-direction:column;gap:10px">
+    <div class="pbadge bn2">◎ analytics</div>
+    <div class="ptitle">Mine Intelligence</div>
+    <div class="intel-grid">
+      <div class="istat"><div class="is-lbl">Total Ore</div><div class="is-val cv-g" id="totalOre">--</div></div>
+      <div class="istat"><div class="is-lbl">Avg Output</div><div class="is-val cv-b" id="avgOre">--</div></div>
+      <div class="istat"><div class="is-lbl">Top Mine</div><div class="is-val cv-a" id="topMine">--</div></div>
+      <div class="istat"><div class="is-lbl">Miners</div><div class="is-val cv-pu" id="minerCountIntel">--</div></div>
+    </div>
+    <div class="scan-progress" id="scanProgress">
+      <div class="scan-bar-wrap"><div class="scan-bar" id="scanBar"></div></div>
+      <div class="scan-label" id="scanLabel">Initializing scan…</div>
+    </div>
+    <button class="btn btn-r" id="loadIntelBtn">▶ Load Intelligence</button>
+  </div>
+  <div class="panel">
+    <div class="pbadge br">● view</div>
+    <div class="ptitle">Get Mine Info</div>
+    <div class="fl">Mine ID</div>
+    <input id="mineInfoId" placeholder="0, 1, 2…" type="number" min="0">
+    <button class="btn btn-r" id="mineInfoBtn">▶ Query Mine</button>
+    <div class="out" id="mineInfoOut"><span>Enter mine ID above</span></div>
+  </div>
+  <div class="panel">
+    <div class="pbadge br">● view</div>
+    <div class="ptitle">Get Miner + Reserves</div>
+    <div class="fl">Miner ID</div>
+    <input id="getMinerId" placeholder="0, 1, 2…" type="number" min="0">
+    <button class="btn btn-r" id="getMinerBtn">▶ Query Miner</button>
+    <div class="out" id="getMinerOut"><span>Enter miner ID above</span></div>
+    <div class="gap"></div>
+    <div class="fl">Mine ID (reserves)</div>
+    <input id="reserveId" placeholder="0, 1, 2…" type="number" min="0">
+    <button class="btn btn-r" id="getReservesBtn">▶ Query Reserves</button>
+    <div class="out" id="reservesOut"><span>Enter mine ID above</span></div>
+  </div>
+</div>
+
+<!-- write functions -->
+<div class="slbl">◈ Write Functions — Owner Only</div>
+<div class="row2 cols-4">
+  <div class="panel wp">
+    <div class="pbadge bw">✦ onlyOwner</div>
+    <div class="ptitle">Add Miner</div>
+    <div class="fl">Name</div><input id="addMinerName" placeholder="Miner name">
+    <div class="fl">Ore Mined</div><input id="addMinerOre" placeholder="Amount" type="number" min="0">
+    <div class="gas-preview" id="addGasPreview" style="display:none">
+      <div class="gas-row"><span class="gas-lbl">Est. Gas</span><span id="addGasEst">--</span></div>
+      <div class="gas-row"><span class="gas-lbl">Cost (XRP)</span><span id="addGasCost">--</span></div>
+    </div>
+    <button class="btn btn-w" id="addMinerBtn">+ Add Miner</button>
+    <div class="tx-steps" id="addTxSteps" style="display:none">
+      <div class="tx-step" id="addS1"><div class="step-dot"></div>Estimating Gas</div>
+      <div class="tx-step" id="addS2"><div class="step-dot"></div>Broadcasting</div>
+      <div class="tx-step" id="addS3"><div class="step-dot"></div>Mining Block</div>
+      <div class="tx-step" id="addS4"><div class="step-dot"></div>Confirmed</div>
+    </div>
+  </div>
+  <div class="panel wp">
+    <div class="pbadge bw">✦ onlyOwner</div>
+    <div class="ptitle">Store Reserves</div>
+    <div class="fl">Mine ID</div><input id="storeResId" placeholder="Mine ID" type="number" min="0">
+    <div class="fl">Tons</div><input id="storeResTons" placeholder="Tons" type="number" min="0">
+    <div class="gas-preview" id="resGasPreview" style="display:none">
+      <div class="gas-row"><span class="gas-lbl">Est. Gas</span><span id="resGasEst">--</span></div>
+      <div class="gas-row"><span class="gas-lbl">Cost (XRP)</span><span id="resGasCost">--</span></div>
+    </div>
+    <button class="btn btn-w" id="storeResBtn">+ Store Reserves</button>
+    <div class="tx-steps" id="resTxSteps" style="display:none">
+      <div class="tx-step" id="resS1"><div class="step-dot"></div>Estimating Gas</div>
+      <div class="tx-step" id="resS2"><div class="step-dot"></div>Broadcasting</div>
+      <div class="tx-step" id="resS3"><div class="step-dot"></div>Mining Block</div>
+      <div class="tx-step" id="resS4"><div class="step-dot"></div>Confirmed</div>
+    </div>
+  </div>
+  <div class="panel wp">
+    <div class="pbadge bw">✦ onlyOwner</div>
+    <div class="ptitle">Set Mine Name</div>
+    <div class="fl">Mine ID</div><input id="setNameId" placeholder="Mine ID" type="number" min="0">
+    <div class="fl">Name</div><input id="setNameVal" placeholder="e.g. McArthur River">
+    <div class="gas-preview" id="nameGasPreview" style="display:none">
+      <div class="gas-row"><span class="gas-lbl">Est. Gas</span><span id="nameGasEst">--</span></div>
+      <div class="gas-row"><span class="gas-lbl">Cost (XRP)</span><span id="nameGasCost">--</span></div>
+    </div>
+    <button class="btn btn-w" id="setNameBtn">+ Set Name</button>
+    <div class="tx-steps" id="nameTxSteps" style="display:none">
+      <div class="tx-step" id="nameS1"><div class="step-dot"></div>Estimating Gas</div>
+      <div class="tx-step" id="nameS2"><div class="step-dot"></div>Broadcasting</div>
+      <div class="tx-step" id="nameS3"><div class="step-dot"></div>Mining Block</div>
+      <div class="tx-step" id="nameS4"><div class="step-dot"></div>Confirmed</div>
+    </div>
+  </div>
+  <div class="panel wp">
+    <div class="pbadge bw">✦ onlyOwner</div>
+    <div class="ptitle">Transfer Ownership</div>
+    <div class="fl">New Owner Address</div><input id="newOwnerAddr" placeholder="0x…">
+    <div class="gas-preview" id="xferGasPreview" style="display:none">
+      <div class="gas-row"><span class="gas-lbl">Est. Gas</span><span id="xferGasEst">--</span></div>
+      <div class="gas-row"><span class="gas-lbl">Cost (XRP)</span><span id="xferGasCost">--</span></div>
+    </div>
+    <div class="gap"></div>
+    <button class="btn btn-d" id="transferBtn">⚠ Transfer Ownership</button>
+    <div class="tx-steps" id="xferTxSteps" style="display:none">
+      <div class="tx-step" id="xferS1"><div class="step-dot"></div>Estimating Gas</div>
+      <div class="tx-step" id="xferS2"><div class="step-dot"></div>Broadcasting</div>
+      <div class="tx-step" id="xferS3"><div class="step-dot"></div>Mining Block</div>
+      <div class="tx-step" id="xferS4"><div class="step-dot"></div>Transferred</div>
+    </div>
+  </div>
+</div>
+
+<!-- GEOLOGY MAP -->
+<div class="slbl">◈ Geological Survey — Subsurface Wireframe</div>
+<div class="geo-outer" id="geoOuter">
+  <canvas id="geoCanvas"></canvas>
+
+  <div class="geo-hud-left">
+    <div class="geo-title">Subsurface Topology</div>
+    <div class="geo-subtitle">Interactive Geological Survey · Drag to rotate · Scroll to zoom</div>
+  </div>
+
+  <div class="geo-hud-right">
+    <div class="geostat"><div class="geostat-l">Depth Range</div><div class="geostat-v cv-b" id="geo-depth">0 – 2400m</div></div>
+    <div class="geostat"><div class="geostat-l">Active Mines</div><div class="geostat-v cv-g" id="geo-mines">--</div></div>
+    <div class="geostat"><div class="geostat-l">Ore Veins</div><div class="geostat-v cv-a" id="geo-veins">--</div></div>
+    <div class="geostat"><div class="geostat-l">Scan Mode</div><div class="geostat-v cv-pu" id="geo-mode">Surface</div></div>
+  </div>
+
+  <div class="geo-tooltip" id="geoTooltip">
+    <div class="geo-tt-title" id="gtt-title">—</div>
+    <div class="geo-tt-row"><span class="geo-tt-k">Depth</span><span class="geo-tt-v" id="gtt-depth">--</span></div>
+    <div class="geo-tt-row"><span class="geo-tt-k">Reserves</span><span class="geo-tt-v" id="gtt-res">--</span></div>
+    <div class="geo-tt-row"><span class="geo-tt-k">Status</span><span class="geo-tt-v cv-g">Active</span></div>
+  </div>
+
+  <div class="geo-legend">
+    <div class="geo-leg-item"><div class="geo-leg-dot" style="background:#00FFB8"></div>Mine shaft</div>
+    <div class="geo-leg-item"><div class="geo-leg-dot" style="background:#FFB830"></div>Ore vein</div>
+    <div class="geo-leg-item"><div class="geo-leg-dot" style="background:#FF3CAC"></div>Drill site</div>
+    <div class="geo-leg-item"><div class="geo-leg-dot" style="background:#00D4FF;opacity:.6"></div>Rock strata</div>
+  </div>
+
+  <div class="geo-ctrl">
+    <button class="geo-btn active" id="geoLayer1">⬡ Wireframe</button>
+    <button class="geo-btn" id="geoLayer2">◈ Solid</button>
+    <button class="geo-btn" id="geoXray">⊕ X-Ray</button>
+    <button class="geo-btn" id="geoReset">↺ Reset</button>
+  </div>
+</div>
+
+<!-- log -->
+<div class="logpanel">
+  <div class="loghd"><div class="live-dot" style="width:6px;height:6px"></div>System Log</div>
+  <div class="logscroll" id="logBox">
+    <div class="logrow"><span class="lt2">--:--:--</span><span class="lm2 if">ZUC Command Center v4.0 — Connect wallet to initialize.</span></div>
+  </div>
+</div>
+</div>
+
+<script>
+/* ══ CONSTANTS ══ */
+var CONTRACT="0x22ACA8269801bF50d96c7e7F296c11799597bE31";
+var XRPL_CHAIN_ID=1449000;
+var EXPLORER="https://explorer.testnet.xrplevm.org/tx/";
+var MAX_MINERS=50;
+var MAX_MINES=10;
+var ABI=[
+  "function addMiner(string _name,uint256 _oreMined) public",
+  "function setMineName(uint256 _mineId,string _name) public",
+  "function storeReserves(uint256 _mineID,uint256 _tons) public",
+  "function transferOwnership(address _newOwner) external",
+  "function getMineInfo(uint256 _mineId) view returns(uint256 tons,string name)",
+  "function getMiner(uint256 _minerID) view returns(tuple(uint256 id,string name,uint256 oreMined))",
+  "function getReserves(uint256 _mineID) external view returns(uint256)",
+  "function mineNames(uint256) view returns(string)",
+  "function mineReserves(uint256) view returns(uint256)",
+  "function miners(uint256) view returns(uint256 id,string name,uint256 oreMined)",
+  "function owner() view returns(address)"
+];
+
+/* ══ STATE ══ */
+var provider,signer,contract;
+var netInterval=null,blockListener=null;
+var threeRenderer=null,threeScene=null,threeCamera=null,animFrame=null;
+var mineNodes=[],minerSatellites=[];
+var mineData=[],minerData=[];
+var reserveChart=null;
+var txInFlight=false;
+
+/* ══ LOG ══ */
+function log(msg,type="if"){
+  var box=document.getElementById("logBox");
+  var r=document.createElement("div");r.className="logrow";
+  r.innerHTML=`<span class="lt2">${new Date().toLocaleTimeString()}</span><span class="lm2 ${type}">${msg}</span>`;
+  box.appendChild(r);box.scrollTop=box.scrollHeight;
+}
+
+/* ══ FEED ══ */
+function addFeed(icon,title,sub,col="",txHash=""){
+  var feed=document.getElementById("feedBody");
+  var t=new Date().toLocaleTimeString();
+  var subHtml=txHash
+    ?`${sub} · <a href="${EXPLORER}${txHash}" target="_blank" style="color:var(--neon2);font-size:10px">View Tx ↗</a>`
+    :sub;
+  var item=document.createElement("div");item.className="feed-item";
+  item.innerHTML=`<div class="fi-icon">${icon}</div><div class="fi-body"><div class="fi-title" style="${col?'color:'+col:''}">${title}</div><div class="fi-sub">${subHtml}</div></div><div class="fi-time">${t}</div>`;
+  feed.insertBefore(item,feed.firstChild);
+  if(feed.children.length>40)feed.removeChild(feed.lastChild);
+}
+
+/* ══ PULSE ══ */
+function pulse(id){
+  var el=document.getElementById(id);if(!el)return;
+  el.classList.remove("updated");void el.offsetWidth;el.classList.add("updated");
+}
+
+/* ══ ROWS / STATUS ══ */
+function rows(el,data){
+  el.innerHTML=data.map(([k,v,c="",href=""])=>{
+    var valHtml=href?`<a href="${href}" target="_blank" class="ov ${c} link">${v}</a>`:`<span class="ov ${c}">${v}</span>`;
+    return `<div class="or"><span class="ok2">${k}</span>${valHtml}</div>`;
+  }).join("");
+}
+function smsg(el,msg,c){el.innerHTML=`<div class="sm2 ${c}">${msg}</div>`}
+
+/* ══ LOCK / UNLOCK WRITE BUTTONS ══ */
+function lockWrite(lock){
+  ["addMinerBtn","storeResBtn","setNameBtn","transferBtn"].forEach(id=>{
+    var b=document.getElementById(id);if(b)b.disabled=lock;
+  });
+  ["addMinerName","addMinerOre","storeResId","storeResTons","setNameId","setNameVal","newOwnerAddr"].forEach(id=>{
+    var i=document.getElementById(id);if(i)i.disabled=lock;
+  });
+}
+
+/* ══ CHAIN CHECK ══ */
+async function checkChain(){
+  if(!provider)return false;
+  var net=await provider.getNetwork();
+  var warn=document.getElementById("chainWarn");
+  if(net.chainId!==XRPL_CHAIN_ID){
+    warn.classList.add("show");
+    log(`Wrong chain: ${net.chainId} (expected ${XRPL_CHAIN_ID})`,"wn");
+    return false;
+  }
+  warn.classList.remove("show");
+  return true;
+}
+
+/* ══ NETWORK MONITOR ══ */
+async function updateNetwork(){
+  if(!provider)return;
+  try{
+    var t0=Date.now();
+    var [block,gasRaw]=await Promise.all([provider.getBlockNumber(),provider.getGasPrice()]);
+    var latMs=Date.now()-t0;
+    var gas=parseFloat(ethers.utils.formatUnits(gasRaw,"gwei")).toFixed(2);
+    document.getElementById("blockNum").textContent=block.toLocaleString();
+    document.getElementById("gasPrice").textContent=gas+" gwei";
+    document.getElementById("latency").textContent=latMs+" ms";
+    document.getElementById("nm-block").textContent=block.toLocaleString();
+    document.getElementById("nm-gas").textContent=gas+" gwei";
+    document.getElementById("nm-lat").textContent=latMs+" ms";
+    pulse("mc-block");pulse("mc-gas");pulse("mc-lat");
+    var health=latMs<300?100:latMs<800?65:30;
+    var hfill=document.getElementById("healthFill");
+    var hcol=health>70?"var(--neon)":health>40?"var(--amb)":"var(--red)";
+    hfill.style.width=health+"%";hfill.style.background=hcol;hfill.style.boxShadow=`0 0 8px ${hcol}`;
+  }catch(e){}
+}
+
+/* ══ CLEANUP ══ */
+function cleanupListeners(){
+  if(netInterval){clearInterval(netInterval);netInterval=null;}
+  if(blockListener&&provider){try{provider.removeAllListeners("block");}catch(e){}}
+  blockListener=null;
+}
+
+function cleanup3D(){
+  if(animFrame){cancelAnimationFrame(animFrame);animFrame=null;}
+  if(threeRenderer){threeRenderer.dispose();threeRenderer=null;}
+  threeScene=null;threeCamera=null;
+  mineNodes=[];minerSatellites=[];
+}
+
+/* ══ 3D MAP ══ */
+function init3DMap(){
+  cleanup3D();
+  var canvas=document.getElementById("mineMapCanvas");
+  var wrap=document.getElementById("mineMapWrap");
+  var W=wrap.clientWidth||600;
+  var H=wrap.clientHeight||320;
+  canvas.width=W;canvas.height=H;
+
+  threeScene=new THREE.Scene();
+  threeCamera=new THREE.PerspectiveCamera(55,W/H,0.1,1000);
+  threeCamera.position.set(0,8,18);threeCamera.lookAt(0,0,0);
+  threeRenderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
+  threeRenderer.setSize(W,H);
+  threeRenderer.setClearColor(0x000000,0);
+  threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+
+  threeScene.add(new THREE.GridHelper(28,20,0x00FFB8,0x0D2020));
+  threeScene.add(Object.assign(new THREE.AmbientLight(0x003322,.6)));
+  var pl=new THREE.PointLight(0x00FFB8,1.2,40);pl.position.set(0,10,0);threeScene.add(pl);
+  var pl2=new THREE.PointLight(0xFF3CAC,.8,30);pl2.position.set(-10,5,-5);threeScene.add(pl2);
+
+  buildMineGraph();
+
+  /* ResizeObserver */
+  new ResizeObserver(()=>{
+    if(!threeRenderer)return;
+    var nW=wrap.clientWidth;var nH=wrap.clientHeight;
+    threeRenderer.setSize(nW,nH);
+    threeCamera.aspect=nW/nH;threeCamera.updateProjectionMatrix();
+  }).observe(wrap);
+
+  /* Raycaster hover */
+  var raycaster=new THREE.Raycaster();var mouse=new THREE.Vector2();
+  var overlay=document.getElementById("mineOverlay");
+  canvas.addEventListener("mousemove",e=>{
+    var rect=canvas.getBoundingClientRect();
+    mouse.x=((e.clientX-rect.left)/rect.width)*2-1;
+    mouse.y=-((e.clientY-rect.top)/rect.height)*2+1;
+    raycaster.setFromCamera(mouse,threeCamera);
+    var hits=raycaster.intersectObjects(mineNodes);
+    if(hits.length){
+      var obj=hits[0].object;
+      overlay.style.display="block";
+      var md=mineData[obj.userData.id]||{};
+      document.getElementById("mio-title").textContent=md.name||`Mine #${obj.userData.id}`;
+      document.getElementById("mio-res").textContent=md.tons!=null?md.tons.toLocaleString()+" t":"--";
+      document.getElementById("mio-name").textContent=md.name||"(unnamed)";
+    }else{overlay.style.display="none";}
+  });
+  canvas.addEventListener("mouseleave",()=>{overlay.style.display="none";});
+
+  animate3D();
+}
+
+function buildMineGraph(){
+  if(!threeScene)return;
+  /* remove old mine/miner meshes */
+  [...mineNodes,...minerSatellites].forEach(m=>{threeScene.remove(m);m.geometry&&m.geometry.dispose();m.material&&m.material.dispose();});
+  mineNodes=[];minerSatellites=[];
+
+  /* use real data if available, else default 3 placeholder mines */
+  var mines=mineData.length>0?mineData:[
+    {id:0,name:"Mine #1",tons:0},{id:1,name:"Mine #2",tons:0},{id:2,name:"Mine #3",tons:0}
+  ];
+  var n=mines.length;
+  var radius=n===1?0:n===2?4:5;
+  var colors=[0x00FFB8,0xFFB830,0x00D4FF,0xFF3CAC,0xA855F7,0xFF6B35];
+  var maxTons=Math.max(...mines.map(m=>m.tons),1);
+
+  var positions=mines.map((_,i)=>{
+    var angle=(i/n)*Math.PI*2-Math.PI/2;
+    return new THREE.Vector3(Math.cos(angle)*radius,0,Math.sin(angle)*radius);
+  });
+
+  mines.forEach((mine,i)=>{
+    var ratio=mine.tons/maxTons;
+    var col=ratio>0.6?0xFFB830:ratio>0.1?0x00FFB8:colors[i%colors.length];
+    var size=0.5+ratio*0.8;
+    var geo=new THREE.SphereGeometry(size,24,24);
+    var mat=new THREE.MeshPhongMaterial({color:col,emissive:col,emissiveIntensity:.6,transparent:true,opacity:.9});
+    var mesh=new THREE.Mesh(geo,mat);
+    mesh.position.copy(positions[i]);
+    mesh.userData={type:"mine",id:i};
+    threeScene.add(mesh);mineNodes.push(mesh);
+
+    /* ring */
+    var rg=new THREE.RingGeometry(size+.15,size+.35,32);
+    var rm=new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:.25,side:THREE.DoubleSide});
+    var ring=new THREE.Mesh(rg,rm);ring.rotation.x=-Math.PI/2;ring.position.copy(positions[i]);ring.position.y=-.01;threeScene.add(ring);
+
+    /* vertical beam */
+    var bg=new THREE.CylinderGeometry(.03,.03,5,6);
+    var bm=new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:.15});
+    var beam=new THREE.Mesh(bg,bm);beam.position.set(positions[i].x,2.5,positions[i].z);threeScene.add(beam);
+
+    /* miner satellites */
+    var satCount=Math.min(2+Math.floor(ratio*2),4);
+    for(var s=0;s<satCount;s++){
+      var sg=new THREE.SphereGeometry(.22,12,12);
+      var sm2=new THREE.MeshPhongMaterial({color:0xFF3CAC,emissive:0xFF3CAC,emissiveIntensity:.7,transparent:true,opacity:.85});
+      var sat=new THREE.Mesh(sg,sm2);
+      sat.userData={mineIdx:i,satIdx:s,totalSats:satCount};
+      threeScene.add(sat);minerSatellites.push(sat);
+      /* line to mine */
+      var lg=new THREE.BufferGeometry().setFromPoints([positions[i],positions[i]]);
+      var lm2=new THREE.LineBasicMaterial({color:0xFF3CAC,transparent:true,opacity:.2});
+      threeScene.add(new THREE.Line(lg,lm2));
+    }
+  });
+
+  /* connections between mines */
+  positions.forEach((a,i)=>{positions.forEach((b,j)=>{
+    if(j<=i)return;
+    var pts=[a,new THREE.Vector3((a.x+b.x)/2,(a.y+b.y)/2+1.8,(a.z+b.z)/2),b];
+    var curve=new THREE.QuadraticBezierCurve3(...pts);
+    var lg=new THREE.BufferGeometry().setFromPoints(curve.getPoints(30));
+    var lm2=new THREE.LineBasicMaterial({color:0x00D4FF,transparent:true,opacity:.25});
+    threeScene.add(new THREE.Line(lg,lm2));
+  });});
+}
+
+function animate3D(){
+  animFrame=requestAnimationFrame(animate3D);
+  var t=Date.now()*.001;
+  if(threeCamera){
+    threeCamera.position.x=Math.sin(t*.11)*16;
+    threeCamera.position.z=Math.cos(t*.11)*16;
+    threeCamera.lookAt(0,0,0);
+  }
+  mineNodes.forEach((node,i)=>{
+    node.scale.setScalar(1+Math.sin(t*2+i*1.2)*.07);
+    node.material.emissiveIntensity=.5+Math.sin(t*1.5+i)*.25;
+  });
+  minerSatellites.forEach(sat=>{
+    var {mineIdx,satIdx,totalSats}=sat.userData;
+    var parent=mineNodes[mineIdx];if(!parent)return;
+    var angle=(satIdx/totalSats)*Math.PI*2+t*(.4+mineIdx*.08);
+    var r=1.8+satIdx*.2;
+    sat.position.set(parent.position.x+Math.cos(angle)*r,0,parent.position.z+Math.sin(angle)*r);
+    sat.scale.setScalar(.9+Math.sin(t*3+satIdx)*.1);
+  });
+  if(threeRenderer&&threeScene&&threeCamera)threeRenderer.render(threeScene,threeCamera);
+}
+
+/* ══ CONNECT ══ */
+async function connectWallet(){
+  if(!window.ethereum){
+    document.getElementById("noMM").classList.add("show");
+    log("MetaMask not found. Install MetaMask to continue.","er");return;
+  }
+  var btn=document.getElementById("connectBtn");
+  btn.disabled=true;btn.textContent="Connecting…";
+  cleanupListeners();
+  try{
+    provider=new ethers.providers.Web3Provider(window.ethereum);
+    await provider.send("eth_requestAccounts",[]);
+    signer=provider.getSigner();
+    contract=new ethers.Contract(CONTRACT,ABI,signer);
+    var addr=await signer.getAddress();
+    var net=await provider.getNetwork();
+    document.getElementById("walletAddr").textContent=addr.slice(0,6)+"…"+addr.slice(-4);
+    document.getElementById("nm-chain").textContent=net.chainId;
+    btn.textContent="Connected ✓";btn.classList.add("on");btn.disabled=false;
+
+    /* chain check */
+    var ok=await checkChain();
+    if(ok){
+      document.getElementById("netStatus").textContent="ONLINE";
+      document.getElementById("netStatus").style.color="var(--neon)";
+      document.getElementById("netStatus").style.textShadow="0 0 14px rgba(0,255,184,.7)";
+      document.getElementById("statusPill").textContent="● ONLINE";
+      document.getElementById("statusPill").className="status-pill sp-on";
+      pulse("mc-status");
+    }
+    log(`Wallet: ${addr}`,"ok");
+    addFeed("🔗","Wallet Connected",`${addr.slice(0,10)}…${addr.slice(-4)}`,"var(--neon)");
+    try{var o=await contract.owner();document.getElementById("ownerMetric").textContent=o.slice(0,6)+"…"+o.slice(-4);pulse("mc-owner");}catch(e){}
+
+    await updateNetwork();
+    netInterval=setInterval(updateNetwork,5000);
+    blockListener=provider.on("block",bn=>{
+      document.getElementById("nm-block").textContent=bn.toLocaleString();
+      document.getElementById("blockNum").textContent=bn.toLocaleString();
+      pulse("mc-block");
+    });
+    log("Network monitor + block listener active","if");
+
+    /* listen for account/chain changes */
+    window.ethereum.removeAllListeners?.("accountsChanged");
+    window.ethereum.removeAllListeners?.("chainChanged");
+    window.ethereum.on("accountsChanged",()=>{log("Account changed — reconnecting…","wn");connectWallet();});
+    window.ethereum.on("chainChanged",()=>{log("Chain changed — reconnecting…","wn");connectWallet();});
+
+    init3DMap();
+  }catch(e){
+    btn.textContent="Initialize";btn.disabled=false;
+    log("Connect failed: "+(e.message||e),"er");
+  }
+}
+
+/* ══ INTELLIGENCE LOADER ══ */
+async function loadIntelligence(){
+  if(!contract){log("Connect wallet first","wn");return;}
+  var btn=document.getElementById("loadIntelBtn");
+  btn.disabled=true;btn.textContent="Scanning…";
+  var prog=document.getElementById("scanProgress");
+  var bar=document.getElementById("scanBar");
+  var label=document.getElementById("scanLabel");
+  prog.classList.add("show");
+  log("Loading mine intelligence…","if");
+  addFeed("🧠","Intelligence Scan Started","Aggregating on-chain data","var(--pur)");
+
+  /* hide hints */
+  document.getElementById("hmHint").style.display="none";
+  document.getElementById("lbHint").style.display="none";
+
+  /* ── scan miners with cap ── */
+  minerData=[];
+  bar.style.width="5%";label.textContent="Scanning miners…";
+  var i=0;
+  while(i<MAX_MINERS){
+    try{
+      var m=await contract.getMiner(i);
+      var minerId=m.id?m.id.toNumber():(m[0]?m[0].toNumber():i);
+      var minerName=m.name||(m[1])||"";
+      var minerOre=m.oreMined?m.oreMined.toNumber():(m[2]?m[2].toNumber():0);
+      // skip completely empty slots but don't stop — some contracts have gaps
+      if(minerName||minerOre>0){
+        minerData.push({id:minerId,name:minerName,ore:minerOre});
+      }
+      i++;
+      var pct=5+Math.min((i/MAX_MINERS)*40,40);
+      bar.style.width=pct+"%";
+      label.textContent="Scanning miners… ("+minerData.length+" found)";
+    }catch(e){
+      // panic code 0x32 = array out of bounds = no more miners
+      // CALL_EXCEPTION on any index = end of array
+      // break on ANY error since contracts panic past end
+      break;
+    }
+  }
+
+  /* ── scan mines in parallel batches ── */
+  label.textContent="Scanning mines…";bar.style.width="50%";
+  mineData=[];
+  var minePromises=Array.from({length:MAX_MINES},(_,j)=>
+    contract.getMineInfo(j).then(info=>{
+      if(info.tons.toNumber()>0||info.name)
+        return{id:j,name:info.name||`Mine #${j}`,tons:info.tons.toNumber()};
+      return null;
+    }).catch(()=>null)
+  );
+  var mineResults=await Promise.all(minePromises);
+  mineData=mineResults.filter(Boolean);
+  bar.style.width="80%";label.textContent="Computing analytics…";
+
+  /* ── analytics ── */
+  var totalOre=minerData.reduce((a,m)=>a+m.ore,0);
+  var avgOre=minerData.length?Math.round(totalOre/minerData.length):0;
+  var topMine=mineData.length?mineData.reduce((a,b)=>a.tons>b.tons?a:b):null;
+
+  document.getElementById("totalOre").textContent=totalOre.toLocaleString();
+  document.getElementById("avgOre").textContent=avgOre.toLocaleString();
+  document.getElementById("topMine").textContent=topMine?"#"+topMine.id:"--";
+  document.getElementById("minerCountIntel").textContent=minerData.length;
+  document.getElementById("minerCountTop").textContent=minerData.length;
+  pulse("mc-miners");
+
+  /* ── leaderboard ── */
+  var lb=document.getElementById("leaderboard");
+  if(!minerData.length){lb.innerHTML='<div class="hm-empty">No miners found on-chain</div>';}
+  else{
+    var sorted=[...minerData].sort((a,b)=>b.ore-a.ore);
+    var maxOre=sorted[0]?.ore||1;
+    lb.innerHTML=sorted.slice(0,8).map((m,idx)=>{
+      var rc=["r1","r2","r3"][idx]||"rn";
+      var rl=["#1","#2","#3"][idx]||"#"+(idx+1);
+      var bw=Math.round((m.ore/maxOre)*100);
+      return `<div class="lb-row"><div class="lb-rank ${rc}">${rl}</div><div class="lb-name">${m.name||"Unknown"}</div><div class="lb-bwrap"><div class="lb-bar" style="width:${bw}%"></div></div><div class="lb-ore">${m.ore.toLocaleString()} t</div></div>`;
+    }).join("");
+  }
+
+  /* ── heatmap ── */
+  var hm=document.getElementById("heatmap");
+  var hexCols=["#00FFB8","#00D4FF","#FFB830","#FF3CAC","#A855F7"];
+  if(!mineData.length){hm.innerHTML='<div class="hm-empty">No mine reserves found</div>';}
+  else{
+    var maxR=Math.max(...mineData.map(r=>r.tons),1);
+    hm.innerHTML=mineData.map((r,i)=>{
+      var w=Math.max(Math.round((r.tons/maxR)*100),2);
+      var hc=hexCols[i%hexCols.length];
+      return `<div class="hm-row"><div class="hm-lbl">${(r.name||"Mine #"+r.id).slice(0,10)}</div><div class="hm-wrap"><div class="hm-bar" style="width:${w}%;background:${hc};box-shadow:0 0 8px ${hc}"></div></div><div class="hm-val">${r.tons.toLocaleString()}</div></div>`;
+    }).join("");
+  }
+
+  /* ── chart ── */
+  if(reserveChart){reserveChart.destroy();reserveChart=null;}
+  if(mineData.length){
+    reserveChart=new Chart(document.getElementById("reserveChart"),{
+      type:"bar",
+      data:{
+        labels:mineData.map(r=>(r.name||"Mine #"+r.id).slice(0,12)),
+        datasets:[{label:"Reserves",data:mineData.map(r=>r.tons),backgroundColor:hexCols.map(c=>c+"33"),borderColor:hexCols,borderWidth:1,borderRadius:2}]
+      },
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:"rgba(0,255,184,.05)"},ticks:{color:"#3A6055",font:{size:9}}},y:{grid:{color:"rgba(0,255,184,.05)"},ticks:{color:"#3A6055",font:{size:9}}}}}
+    });
+  }
+
+  /* ── rebuild 3D map with real data ── */
+  buildMineGraph();
+  bar.style.width="100%";label.textContent=`Complete — ${minerData.length} miners · ${mineData.length} mines`;
+  log(`Intelligence: ${minerData.length} miners · ${mineData.length} mines · ${totalOre.toLocaleString()}t ore`,"ok");
+  addFeed("📊","Intelligence Loaded",`${minerData.length} miners · ${mineData.length} mines · ${totalOre.toLocaleString()}t`,"var(--neon2)");
+  setTimeout(()=>{prog.classList.remove("show");},3000);
+  btn.disabled=false;btn.textContent="▶ Refresh Intelligence";
+}
+
+/* ══ TX RUNNER ══ */
+function txReset(ids){ids.forEach(id=>{var el=document.getElementById(id);if(el)el.className="tx-step"})}
+function txSetStep(id,s){var el=document.getElementById(id);if(el)el.className="tx-step "+s}
+
+async function runTx(opts){
+  if(txInFlight){log("Transaction already in progress","wn");return;}
+  if(!contract){log("Connect wallet first","wn");return;}
+
+  /* chain check before every write */
+  var ok=await checkChain();
+  if(!ok)return;
+
+  txInFlight=true;
+  lockWrite(true);
+
+  var stepsEl=document.getElementById(opts.steps);
+  stepsEl.style.display="flex";
+  txReset(opts.ids);
+  if(opts.gasPreview)document.getElementById(opts.gasPreview).style.display="none";
+
+  try{
+    /* gas estimate */
+    txSetStep(opts.ids[0],"active");
+    var gasEst;
+    try{
+      gasEst=await opts.estimateFn();
+      txSetStep(opts.ids[0],"done");
+      if(opts.gasPreview&&gasEst){
+        var gp=await provider.getGasPrice();
+        var costWei=gp.mul(gasEst);
+        var costXrp=parseFloat(ethers.utils.formatEther(costWei)).toFixed(8);
+        document.getElementById(opts.gasEst).textContent=gasEst.toNumber().toLocaleString();
+        document.getElementById(opts.gasCost).textContent=costXrp+" XRP";
+        document.getElementById(opts.gasPreview).style.display="block";
+      }
+    }catch(e){txSetStep(opts.ids[0],"done")}
+
+    /* broadcast */
+    txSetStep(opts.ids[1],"active");
+    var tx=await opts.txFn();
+    txSetStep(opts.ids[1],"done");
+    log(`TX: ${tx.hash.slice(0,14)}… · <a href="${EXPLORER}${tx.hash}" target="_blank">View ↗</a>`,"if");
+    addFeed("📡","Transaction Broadcast",tx.hash.slice(0,16)+"…","var(--pur)",tx.hash);
+
+    /* wait */
+    txSetStep(opts.ids[2],"active");
+    await tx.wait();
+    txSetStep(opts.ids[2],"done");
+    txSetStep(opts.ids[3],"done");
+    addFeed(opts.icon,opts.title,opts.sub,opts.col,tx.hash);
+    log(`Confirmed: ${opts.title}`,"ok");
+    if(opts.onSuccess)opts.onSuccess(tx);
+  }catch(e){
+    opts.ids.forEach(id=>{var el=document.getElementById(id);if(el&&el.classList.contains("active"))txSetStep(id,"fail");});
+    log("TX failed: "+(e.reason||e.message),"er");
+    addFeed("❌","Transaction Failed",(e.reason||e.message||"").slice(0,60),"var(--red)");
+  }finally{
+    txInFlight=false;
+    lockWrite(false);
+  }
+}
+
+/* ══ READ FUNCTIONS ══ */
+async function getMineInfo(){
+  var out=document.getElementById("mineInfoOut"),id=document.getElementById("mineInfoId").value;
+  if(id===""){log("Mine ID required","wn");return;}
+  try{smsg(out,"Querying…","pn");var d=await contract.getMineInfo(id);rows(out,[["Mine ID","#"+id],["Name",d.name||"(unnamed)"],["Reserves",d.tons.toString()+" tons"]]);log(`Mine #${id}: "${d.name}" — ${d.tons} tons`,"ok");}
+  catch(e){smsg(out,"Query failed","er");log("getMineInfo: "+(e.reason||e.message),"er")}
+}
+async function getMiner(){
+  var out=document.getElementById("getMinerOut"),id=document.getElementById("getMinerId").value;
+  if(id===""){log("Miner ID required","wn");return;}
+  try{smsg(out,"Querying…","pn");var d=await contract.getMiner(id);
+  var dId=d.id?d.id.toString():(d[0]?d[0].toString():id);
+  var dName=d.name||(d[1])||"(unnamed)";
+  var dOre=d.oreMined?d.oreMined.toString():(d[2]?d[2].toString():"0");
+  rows(out,[["ID",dId],["Name",dName],["Ore",dOre+" units"]]);log("Miner #"+id+": \""+dName+"\"","ok");}
+  catch(e){smsg(out,"Query failed","er");log("getMiner: "+(e.reason||e.message),"er")}
+}
+async function getReserves(){
+  var out=document.getElementById("reservesOut"),id=document.getElementById("reserveId").value;
+  if(id===""){log("Mine ID required","wn");return;}
+  try{smsg(out,"Querying…","pn");var tons=await contract.getReserves(id);rows(out,[["Mine","#"+id],["Reserves",tons.toString()+" tons"]]);log(`Mine #${id}: ${tons} tons`,"ok");}
+  catch(e){smsg(out,"Query failed","er");log("getReserves: "+(e.reason||e.message),"er")}
+}
+
+/* ══ WRITE FUNCTIONS ══ */
+async function addMiner(){
+  var name=document.getElementById("addMinerName").value.trim();
+  var ore=document.getElementById("addMinerOre").value;
+  if(!name||ore===""){log("Name and ore amount required","wn");return;}
+  await runTx({
+    steps:"addTxSteps",ids:["addS1","addS2","addS3","addS4"],
+    gasPreview:"addGasPreview",gasEst:"addGasEst",gasCost:"addGasCost",
+    estimateFn:()=>contract.estimateGas.addMiner(name,ore),
+    txFn:()=>contract.addMiner(name,ore),
+    icon:"⛏",title:`Miner Added — ${name}`,sub:`${parseInt(ore).toLocaleString()} ore units`,col:"var(--neon)",
+    onSuccess:()=>{document.getElementById("addMinerName").value="";document.getElementById("addMinerOre").value="";}
+  });
+}
+async function storeReserves(){
+  var id=document.getElementById("storeResId").value;
+  var tons=document.getElementById("storeResTons").value;
+  if(id===""||tons===""){log("Mine ID and tons required","wn");return;}
+  await runTx({
+    steps:"resTxSteps",ids:["resS1","resS2","resS3","resS4"],
+    gasPreview:"resGasPreview",gasEst:"resGasEst",gasCost:"resGasCost",
+    estimateFn:()=>contract.estimateGas.storeReserves(id,tons),
+    txFn:()=>contract.storeReserves(id,tons),
+    icon:"🪨",title:`Reserves Updated — Mine #${id}`,sub:`${parseInt(tons).toLocaleString()} tons`,col:"var(--amb)",
+    onSuccess:null
+  });
+}
+async function setMineName(){
+  var id=document.getElementById("setNameId").value;
+  var name=document.getElementById("setNameVal").value.trim();
+  if(id===""||!name){log("Mine ID and name required","wn");return;}
+  await runTx({
+    steps:"nameTxSteps",ids:["nameS1","nameS2","nameS3","nameS4"],
+    gasPreview:"nameGasPreview",gasEst:"nameGasEst",gasCost:"nameGasCost",
+    estimateFn:()=>contract.estimateGas.setMineName(id,name),
+    txFn:()=>contract.setMineName(id,name),
+    icon:"🏷",title:`Mine Renamed — Mine #${id}`,sub:`"${name}"`,col:"var(--neon2)",
+    onSuccess:()=>{document.getElementById("setNameId").value="";document.getElementById("setNameVal").value="";}
+  });
+}
+async function transferOwnership(){
+  var addr=document.getElementById("newOwnerAddr").value.trim();
+  if(!addr.startsWith("0x")||addr.length!==42){log("Valid 0x address required","wn");return;}
+  if(!confirm(`⚠️ Transfer ownership to\n${addr}\n\nThis is IRREVERSIBLE. Confirm?`))return;
+  addFeed("👑","Ownership Transfer Pending",addr.slice(0,10)+"…","var(--red)");
+  await runTx({
+    steps:"xferTxSteps",ids:["xferS1","xferS2","xferS3","xferS4"],
+    gasPreview:"xferGasPreview",gasEst:"xferGasEst",gasCost:"xferGasCost",
+    estimateFn:()=>contract.estimateGas.transferOwnership(addr),
+    txFn:()=>contract.transferOwnership(addr),
+    icon:"👑",title:"Ownership Transferred",sub:`To: ${addr.slice(0,12)}…`,col:"var(--red)",
+    onSuccess:()=>{document.getElementById("ownerMetric").textContent=addr.slice(0,6)+"…"+addr.slice(-4);pulse("mc-owner");document.getElementById("newOwnerAddr").value="";}
+  });
+}
+
+/* ══════════════════════════════════════
+   NETWORK GLOBE (Three.js)
+══════════════════════════════════════ */
+var globeRenderer=null,globeScene=null,globeCamera=null,globeAnimFrame=null;
+var globeRotating=true,globePulsing=true,globeWireframe=false;
+var globeNodes=[],globeEdges=[];
+var globeRaycaster=new THREE.Raycaster(),globeMouse=new THREE.Vector2();
+var globeTxPulses=[];
+// drag state
+var globeDragging=false,globeLastMouse={x:0,y:0},globeRotY=0,globeRotX=0;
+
+var GLOBE_R=6.5;
+var NODE_COLORS={mine:0x00FFB8,miner:0xFF3CAC,contract:0xFFB830,tx:0xA855F7};
+
+/* lat/lon → 3D point on sphere */
+function latLonToVec3(lat,lon,r){
+  var phi=(90-lat)*Math.PI/180;
+  var theta=(lon+180)*Math.PI/180;
+  return new THREE.Vector3(
+    -r*Math.sin(phi)*Math.cos(theta),
+    r*Math.cos(phi),
+    r*Math.sin(phi)*Math.sin(theta)
+  );
+}
+
+function initGlobe(){
+  if(globeRenderer)cleanupGlobe();
+  var canvas=document.getElementById("globeCanvas");
+  var outer=document.getElementById("globeOuter");
+  var W=outer.clientWidth,H=outer.clientHeight;
+
+  globeScene=new THREE.Scene();
+  globeCamera=new THREE.PerspectiveCamera(45,W/H,.1,200);
+  globeCamera.position.set(0,0,22);
+  globeCamera.lookAt(0,0,0);
+
+  globeRenderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
+  globeRenderer.setSize(W,H);
+  globeRenderer.setClearColor(0x000000,0);
+  globeRenderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+
+  /* ── SPHERE SHELL ── */
+  var shellGeo=new THREE.SphereGeometry(GLOBE_R,.0,60,60);
+  var shellMat=new THREE.MeshPhongMaterial({
+    color:0x001a2e,emissive:0x001a2e,
+    transparent:true,opacity:.18,
+    wireframe:false,side:THREE.FrontSide,
+  });
+  var shell=new THREE.Mesh(shellGeo,shellMat);
+  shell.userData.isShell=true;
+  globeScene.add(shell);
+
+  /* wireframe overlay */
+  var wfGeo=new THREE.SphereGeometry(GLOBE_R+.02,32,32);
+  var wfMat=new THREE.MeshBasicMaterial({color:0x00FFB8,wireframe:true,transparent:true,opacity:.04});
+  var wf=new THREE.Mesh(wfGeo,wfMat);
+  wf.userData.isWireframe=true;
+  globeScene.add(wf);
+
+  /* equator ring */
+  var eqGeo=new THREE.TorusGeometry(GLOBE_R+.05,.008,8,120);
+  var eqMat=new THREE.MeshBasicMaterial({color:0x00FFB8,transparent:true,opacity:.2});
+  globeScene.add(new THREE.Mesh(eqGeo,eqMat));
+
+  /* prime meridian ring */
+  var pmGeo=new THREE.TorusGeometry(GLOBE_R+.05,.008,8,120);
+  var pmMat=new THREE.MeshBasicMaterial({color:0x00D4FF,transparent:true,opacity:.15});
+  var pm=new THREE.Mesh(pmGeo,pmMat);pm.rotation.y=Math.PI/2;
+  globeScene.add(pm);
+
+  /* core glow (inner sphere) */
+  var coreGeo=new THREE.SphereGeometry(GLOBE_R*.55,24,24);
+  var coreMat=new THREE.MeshBasicMaterial({color:0x002d1e,transparent:true,opacity:.5});
+  globeScene.add(new THREE.Mesh(coreGeo,coreMat));
+
+  /* atmosphere halo */
+  var atmGeo=new THREE.SphereGeometry(GLOBE_R+.6,32,32);
+  var atmMat=new THREE.MeshBasicMaterial({color:0x00FFB8,transparent:true,opacity:.04,side:THREE.BackSide});
+  globeScene.add(new THREE.Mesh(atmGeo,atmMat));
+
+  /* lights */
+  globeScene.add(new THREE.AmbientLight(0x002211,.8));
+  var sun=new THREE.DirectionalLight(0x00FFB8,.6);sun.position.set(10,8,10);globeScene.add(sun);
+  var sun2=new THREE.DirectionalLight(0xFF3CAC,.3);sun2.position.set(-10,-5,-8);globeScene.add(sun2);
+
+  /* stars */
+  var starGeo=new THREE.BufferGeometry();
+  var starPos=[];
+  for(var i=0;i<1200;i++){
+    var r=60+Math.random()*80;
+    var theta=Math.random()*Math.PI*2;
+    var phi=Math.acos(2*Math.random()-1);
+    starPos.push(r*Math.sin(phi)*Math.cos(theta),r*Math.cos(phi),r*Math.sin(phi)*Math.sin(theta));
+  }
+  starGeo.setAttribute("position",new THREE.Float32BufferAttribute(starPos,3));
+  var starMat=new THREE.PointsMaterial({color:0xffffff,size:.18,transparent:true,opacity:.55});
+  globeScene.add(new THREE.Points(starGeo,starMat));
+
+  buildGlobeNetwork();
+
+  /* ResizeObserver */
+  new ResizeObserver(()=>{
+    if(!globeRenderer)return;
+    var nW=outer.clientWidth,nH=outer.clientHeight;
+    globeRenderer.setSize(nW,nH);
+    globeCamera.aspect=nW/nH;globeCamera.updateProjectionMatrix();
+  }).observe(outer);
+
+  /* mouse events */
+  var tooltip=document.getElementById("globeTooltip");
+  canvas.addEventListener("mousemove",e=>{
+    var rect=canvas.getBoundingClientRect();
+    globeMouse.x=((e.clientX-rect.left)/rect.width)*2-1;
+    globeMouse.y=-((e.clientY-rect.top)/rect.height)*2+1;
+    globeRaycaster.setFromCamera(globeMouse,globeCamera);
+    var hits=globeRaycaster.intersectObjects(globeNodes.map(n=>n.mesh));
+    if(hits.length){
+      var nd=hits[0].object.userData;
+      tooltip.style.display="block";
+      tooltip.style.left=(e.clientX-rect.left+14)+"px";
+      tooltip.style.top=(e.clientY-rect.top-10)+"px";
+      document.getElementById("gt-title").textContent=nd.label||"Node";
+      document.getElementById("gt-type").textContent=nd.type||"--";
+      document.getElementById("gt-id").textContent=nd.id!=null?"#"+nd.id:"--";
+      document.getElementById("gt-val").textContent=nd.value||"--";
+    }else{tooltip.style.display="none";}
+    if(globeDragging){
+      var dx=e.clientX-globeLastMouse.x,dy=e.clientY-globeLastMouse.y;
+      globeRotY+=dx*.005;globeRotX+=dy*.005;
+      globeRotX=Math.max(-Math.PI/2.2,Math.min(Math.PI/2.2,globeRotX));
+      globeLastMouse={x:e.clientX,y:e.clientY};
+    }
+  });
+  canvas.addEventListener("mouseleave",()=>{tooltip.style.display="none";globeDragging=false;});
+  canvas.addEventListener("mousedown",e=>{globeDragging=true;globeLastMouse={x:e.clientX,y:e.clientY};globeRotating=false;document.getElementById("gcRotate").classList.remove("active");});
+  canvas.addEventListener("mouseup",()=>{globeDragging=false;});
+
+  /* controls */
+  document.getElementById("gcRotate").onclick=function(){globeRotating=!globeRotating;this.classList.toggle("active",globeRotating)};
+  document.getElementById("gcPulse").onclick=function(){globePulsing=!globePulsing;this.classList.toggle("active",globePulsing)};
+  document.getElementById("gcWire").onclick=function(){
+    globeWireframe=!globeWireframe;this.classList.toggle("active",globeWireframe);
+    globeScene.traverse(obj=>{if(obj.userData.isWireframe)obj.material.opacity=globeWireframe?.18:.04;if(obj.userData.isShell)obj.material.opacity=globeWireframe?.06:.18;});
+  };
+
+  animateGlobe();
+}
+
+function buildGlobeNetwork(){
+  if(!globeScene)return;
+  /* clear old */
+  globeNodes.forEach(n=>{globeScene.remove(n.mesh);n.mesh.geometry.dispose();n.mesh.material.dispose();});
+  globeEdges.forEach(e=>{globeScene.remove(e);e.geometry.dispose();e.material.dispose();});
+  globeNodes=[];globeEdges=[];globeTxPulses=[];
+
+  /* decide topology from data or use defaults */
+  var mines=mineData.length>0?mineData:[
+    {id:0,name:"McArthur",tons:1200},{id:1,name:"Cigar Lake",tons:3400},{id:2,name:"Rabbit Lake",tons:800},{id:3,name:"Athabasca",tons:2100}
+  ];
+  var miners=minerData.length>0?minerData:[
+    {id:0,name:"Miner A",ore:440},{id:1,name:"Miner B",ore:290},{id:2,name:"Miner C",ore:620},
+    {id:3,name:"Miner D",ore:180},{id:4,name:"Miner E",ore:350},{id:5,name:"Miner F",ore:510},
+  ];
+
+  var totalNodes=mines.length+miners.length+1;
+  document.getElementById("g-mines").textContent=mines.length;
+  document.getElementById("g-miners").textContent=miners.length;
+  document.getElementById("g-ore").textContent=miners.reduce((a,m)=>a+m.ore,0).toLocaleString();
+
+  /* contract hub at pole */
+  var contractPos=latLonToVec3(70,0,GLOBE_R);
+  addGlobeNode(contractPos,"contract","Contract","Hub","0x22AC…bE31");
+
+  /* mines spread around upper hemisphere */
+  var minePositions=mines.map((mine,i)=>{
+    var lat=15+Math.random()*35;
+    var lon=-150+i*(300/Math.max(mines.length-1,1));
+    var pos=latLonToVec3(lat,lon,GLOBE_R);
+    var maxT=Math.max(...mines.map(m=>m.tons),1);
+    var r=.28+.28*(mine.tons/maxT);
+    addGlobeNode(pos,"mine","Mine #"+mine.id,mine.name||"Mine #"+mine.id,mine.tons.toLocaleString()+" t",r);
+    /* connect to contract hub */
+    addGlobeEdge(contractPos,pos,0x00FFB8,.35);
+    return pos;
+  });
+
+  /* miners in lower hemisphere, each tethered to nearest mine */
+  miners.forEach((miner,i)=>{
+    var lat=-10-Math.random()*40;
+    var lon=-160+i*(320/Math.max(miners.length-1,1));
+    var pos=latLonToVec3(lat,lon,GLOBE_R);
+    var maxO=Math.max(...miners.map(m=>m.ore),1);
+    var r=.16+.18*(miner.ore/maxO);
+    addGlobeNode(pos,"miner","Miner #"+miner.id,miner.name||"Miner #"+miner.id,miner.ore.toLocaleString()+" ore",r);
+    /* connect to closest mine */
+    var mineIdx=i%mines.length;
+    addGlobeEdge(minePositions[mineIdx],pos,0xFF3CAC,.25);
+  });
+
+  /* mine–mine cross connections */
+  minePositions.forEach((a,i)=>{
+    var b=minePositions[(i+1)%minePositions.length];
+    addGlobeEdge(a,b,0x00D4FF,.2);
+  });
+
+  document.getElementById("g-conns").textContent=globeEdges.length;
+}
+
+function addGlobeNode(pos,type,label,name,value,radius=.22){
+  var col=NODE_COLORS[type]||0xffffff;
+  var geo=new THREE.SphereGeometry(radius,16,16);
+  var mat=new THREE.MeshPhongMaterial({color:col,emissive:col,emissiveIntensity:.7,transparent:true,opacity:.95});
+  var mesh=new THREE.Mesh(geo,mat);
+  mesh.position.copy(pos);
+  mesh.userData={type,label,id:globeNodes.length,value,name};
+  globeScene.add(mesh);
+
+  /* outer ring halo */
+  var rg=new THREE.RingGeometry(radius+.04,radius+.12,24);
+  var rm=new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:.2,side:THREE.DoubleSide});
+  var ring=new THREE.Mesh(rg,rm);
+  ring.lookAt(new THREE.Vector3(0,0,0));
+  ring.position.copy(pos);
+  globeScene.add(ring);
+
+  /* spike from surface */
+  var spGeo=new THREE.CylinderGeometry(.015,.015,radius*1.5,4);
+  var spMat=new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:.4});
+  var spike=new THREE.Mesh(spGeo,spMat);
+  var dir=pos.clone().normalize();
+  spike.position.copy(pos.clone().add(dir.multiplyScalar(radius*.4)));
+  spike.lookAt(pos.clone().multiplyScalar(2));
+  globeScene.add(spike);
+
+  globeNodes.push({mesh,type,pos,col});
+}
+
+function addGlobeEdge(a,b,color,opacity){
+  /* arc on sphere surface using slerp points */
+  var points=[];
+  var steps=32;
+  for(var i=0;i<=steps;i++){
+    var t=i/steps;
+    var p=new THREE.Vector3().lerpVectors(a,b,t).normalize().multiplyScalar(GLOBE_R+.06);
+    points.push(p);
+  }
+  var geo=new THREE.BufferGeometry().setFromPoints(points);
+  var mat=new THREE.LineBasicMaterial({color,transparent:true,opacity});
+  var line=new THREE.Line(geo,mat);
+  globeScene.add(line);
+  globeEdges.push(line);
+  return line;
+}
+
+/* spawn a travelling pulse along an edge */
+function spawnTxPulse(){
+  if(!globePulsing||globeNodes.length<2)return;
+  var i=Math.floor(Math.random()*globeNodes.length);
+  var j=Math.floor(Math.random()*globeNodes.length);
+  if(i===j)return;
+  var a=globeNodes[i].pos,b=globeNodes[j].pos;
+  var col=0xA855F7;
+  var geo=new THREE.SphereGeometry(.12,8,8);
+  var mat=new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:.9});
+  var pulse=new THREE.Mesh(geo,mat);
+  globeScene.add(pulse);
+  globeTxPulses.push({mesh:pulse,a,b,t:0,speed:.008+Math.random()*.012,life:1});
+}
+
+function animateGlobe(){
+  globeAnimFrame=requestAnimationFrame(animateGlobe);
+  var T=Date.now()*.001;
+
+  if(globeScene){
+    /* auto rotate */
+    if(globeRotating)globeRotY+=.003;
+    globeScene.rotation.y=globeRotY;
+    globeScene.rotation.x=globeRotX;
+
+    /* pulse nodes */
+    globeNodes.forEach((nd,i)=>{
+      var s=1+Math.sin(T*1.8+i*.9)*.07;
+      nd.mesh.scale.setScalar(s);
+      nd.mesh.material.emissiveIntensity=.55+Math.sin(T*1.2+i)*.3;
+    });
+
+    /* spawn tx pulses periodically */
+    if(globePulsing&&Math.random()<.018)spawnTxPulse();
+
+    /* animate pulses */
+    globeTxPulses=globeTxPulses.filter(p=>{
+      p.t+=p.speed;p.life=1-p.t;
+      if(p.t>=1){globeScene.remove(p.mesh);p.mesh.geometry.dispose();p.mesh.material.dispose();return false;}
+      var pos=new THREE.Vector3().lerpVectors(p.a,p.b,p.t).normalize().multiplyScalar(GLOBE_R+.1);
+      p.mesh.position.copy(pos);
+      p.mesh.material.opacity=p.life*1.0;
+      p.mesh.scale.setScalar(.8+Math.sin(p.t*Math.PI)*.6);
+      return true;
+    });
+
+    /* edge pulse opacity */
+    globeEdges.forEach((e,i)=>{
+      e.material.opacity=e.material.opacity*.98+((.15+Math.sin(T*.8+i*.4)*.1)*.02);
+    });
+  }
+
+  if(globeRenderer&&globeScene&&globeCamera)globeRenderer.render(globeScene,globeCamera);
+}
+
+function cleanupGlobe(){
+  if(globeAnimFrame){cancelAnimationFrame(globeAnimFrame);globeAnimFrame=null;}
+  if(globeRenderer){globeRenderer.dispose();globeRenderer=null;}
+  globeScene=null;globeCamera=null;globeNodes=[];globeEdges=[];globeTxPulses=[];
+}
+
+/* call buildGlobeNetwork whenever intel loads */
+var _origLoadIntel=loadIntelligence;
+/* we patch after load — see bottom of INIT */
+
+/* ══════════════════════════════════════
+   GEOLOGY VIEWER (Three.js)
+══════════════════════════════════════ */
+var geoRenderer=null,geoScene=null,geoCamera=null,geoAnimFrame=null;
+var geoControls={isDragging:false,lastX:0,lastY:0,rotX:0.55,rotY:0.3,zoom:1};
+var geoMode="wire"; // wire | solid | xray
+var geoMeshes=[];
+var geoRay=new THREE.Raycaster(),geoMouse2=new THREE.Vector2();
+var geoMineMarkers=[];
+var geoScanT=0;
+
+var STRATA=[
+  {y:0,    h:18, col:0x1a3a2a, name:"Topsoil / Overburden",   wCol:0x00FFB8, op:.08},
+  {y:-18,  h:22, col:0x0d1f35, name:"Sandstone Formation",     wCol:0x00D4FF, op:.12},
+  {y:-40,  h:20, col:0x1a1228, name:"Shale / Mudstone",        wCol:0xA855F7, op:.10},
+  {y:-60,  h:28, col:0x0a1a10, name:"Granite Basement",        wCol:0x00FFB8, op:.15},
+  {y:-88,  h:18, col:0x251508, name:"Ore-Bearing Breccia",      wCol:0xFFB830, op:.22},
+  {y:-106, h:22, col:0x0a0a18, name:"Crystalline Basement",    wCol:0x4488FF, op:.09},
+];
+
+function initGeoViewer(){
+  if(geoRenderer)cleanupGeo();
+  var canvas=document.getElementById("geoCanvas");
+  var outer=document.getElementById("geoOuter");
+  var W=outer.clientWidth||900, H=outer.clientHeight||500;
+
+  geoScene=new THREE.Scene();
+  geoCamera=new THREE.PerspectiveCamera(42, W/H, 0.1, 2000);
+  geoCamera.position.set(0, 60, 160);
+  geoCamera.lookAt(0, -30, 0);
+
+  geoRenderer=new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
+  geoRenderer.setSize(W, H);
+  geoRenderer.setClearColor(0x000000, 0);
+  geoRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  /* lights */
+  geoScene.add(new THREE.AmbientLight(0x002233, 1.2));
+  var dl=new THREE.DirectionalLight(0x00D4FF, .7);
+  dl.position.set(60, 80, 60); geoScene.add(dl);
+  var dl2=new THREE.DirectionalLight(0xFFB830, .4);
+  dl2.position.set(-60, -20, -40); geoScene.add(dl2);
+
+  buildGeoTerrain();
+
+  /* resize observer */
+  new ResizeObserver(()=>{
+    if(!geoRenderer)return;
+    var nW=outer.clientWidth, nH=outer.clientHeight;
+    geoRenderer.setSize(nW, nH);
+    geoCamera.aspect=nW/nH;
+    geoCamera.updateProjectionMatrix();
+  }).observe(outer);
+
+  /* mouse events */
+  var tooltip=document.getElementById("geoTooltip");
+  canvas.addEventListener("mousemove", e=>{
+    var rect=canvas.getBoundingClientRect();
+    if(geoControls.isDragging){
+      var dx=e.clientX-geoControls.lastX, dy=e.clientY-geoControls.lastY;
+      geoControls.rotY+=dx*.007;
+      geoControls.rotX+=dy*.007;
+      geoControls.rotX=Math.max(-0.1, Math.min(1.4, geoControls.rotX));
+      geoControls.lastX=e.clientX; geoControls.lastY=e.clientY;
+    }
+    /* hover raycaster */
+    geoMouse2.x=((e.clientX-rect.left)/rect.width)*2-1;
+    geoMouse2.y=-((e.clientY-rect.top)/rect.height)*2+1;
+    geoRay.setFromCamera(geoMouse2, geoCamera);
+    var hits=geoRay.intersectObjects(geoMineMarkers.map(m=>m.mesh));
+    if(hits.length){
+      var d=hits[0].object.userData;
+      tooltip.style.display="block";
+      tooltip.style.left=(e.clientX-rect.left+14)+"px";
+      tooltip.style.top=(e.clientY-rect.top-14)+"px";
+      document.getElementById("gtt-title").textContent=d.name||"Mine";
+      document.getElementById("gtt-depth").textContent=d.depth+"m";
+      document.getElementById("gtt-res").textContent=d.tons.toLocaleString()+" t";
+    } else { tooltip.style.display="none"; }
+  });
+  canvas.addEventListener("mouseleave",()=>{tooltip.style.display="none"; geoControls.isDragging=false;});
+  canvas.addEventListener("mousedown",e=>{geoControls.isDragging=true; geoControls.lastX=e.clientX; geoControls.lastY=e.clientY;});
+  canvas.addEventListener("mouseup",()=>{geoControls.isDragging=false;});
+  canvas.addEventListener("wheel",e=>{
+    e.preventDefault();
+    geoControls.zoom=Math.max(.4, Math.min(2.5, geoControls.zoom+e.deltaY*.001));
+  },{passive:false});
+
+  /* controls */
+  document.getElementById("geoLayer1").onclick=function(){setGeoMode("wire");};
+  document.getElementById("geoLayer2").onclick=function(){setGeoMode("solid");};
+  document.getElementById("geoXray").onclick=function(){setGeoMode("xray");};
+  document.getElementById("geoReset").onclick=function(){
+    geoControls.rotX=0.55; geoControls.rotY=0.3; geoControls.zoom=1;
+  };
+
+  animateGeo();
+}
+
+function setGeoMode(mode){
+  geoMode=mode;
+  ["geoLayer1","geoLayer2","geoXray"].forEach(id=>document.getElementById(id).classList.remove("active"));
+  var map={wire:"geoLayer1",solid:"geoLayer2",xray:"geoXray"};
+  document.getElementById(map[mode]).classList.add("active");
+  document.getElementById("geo-mode").textContent={wire:"Wireframe",solid:"Solid",xray:"X-Ray"}[mode];
+  updateGeoMaterials();
+}
+
+function updateGeoMaterials(){
+  geoMeshes.forEach(({solid, wire, xray})=>{
+    if(solid) solid.visible = geoMode==="solid";
+    if(wire)  wire.visible  = geoMode==="wire" || geoMode==="xray";
+    if(xray)  xray.visible  = geoMode==="xray";
+  });
+}
+
+function buildGeoTerrain(){
+  /* clear */
+  geoMeshes.forEach(g=>{
+    [g.solid,g.wire,g.xray].forEach(m=>{if(m){geoScene.remove(m);m.geometry.dispose();m.material.dispose();}});
+  });
+  geoMineMarkers.forEach(m=>{geoScene.remove(m.mesh);m.mesh.geometry.dispose();m.mesh.material.dispose();});
+  geoMeshes=[];geoMineMarkers=[];
+
+  var W=120, D=80, segs=48, dsegs=32;
+
+  /* ── TERRAIN SURFACE (perlin-like displacement) ── */
+  var surfGeo=new THREE.PlaneGeometry(W, D, segs, dsegs);
+  surfGeo.rotateX(-Math.PI/2);
+  var pos=surfGeo.attributes.position;
+  for(var i=0;i<pos.count;i++){
+    var x=pos.getX(i)/W, z=pos.getZ(i)/D;
+    var h=
+      Math.sin(x*Math.PI*3)*2.8+
+      Math.cos(z*Math.PI*4)*2.2+
+      Math.sin((x+z)*Math.PI*6)*.9+
+      Math.cos((x*2-z)*Math.PI*5)*1.1+
+      Math.sin(x*Math.PI*9)*.4+
+      Math.cos(z*Math.PI*7)*.35;
+    pos.setY(i, h);
+  }
+  pos.needsUpdate=true;
+  surfGeo.computeVertexNormals();
+
+  var surfSolid=new THREE.Mesh(surfGeo, new THREE.MeshPhongMaterial({color:0x0a2a18,emissive:0x001a0c,transparent:true,opacity:.92,side:THREE.DoubleSide}));
+  var surfWire=new THREE.Mesh(surfGeo, new THREE.MeshBasicMaterial({color:0x00FFB8,wireframe:true,transparent:true,opacity:.35}));
+  var surfXray=new THREE.Mesh(surfGeo, new THREE.MeshBasicMaterial({color:0x00FFB8,wireframe:true,transparent:true,opacity:.15}));
+  geoScene.add(surfSolid,surfWire,surfXray);
+  geoMeshes.push({solid:surfSolid,wire:surfWire,xray:surfXray,name:"surface"});
+
+  /* ── STRATA LAYERS ── */
+  STRATA.forEach((s,i)=>{
+    var geo=new THREE.BoxGeometry(W+2, s.h, D+2, segs, 1, dsegs);
+    /* displace top face vertices to match terrain-like waviness */
+    var sp=geo.attributes.position;
+    for(var v=0;v<sp.count;v++){
+      var yv=sp.getY(v);
+      if(yv>0){
+        var xn=sp.getX(v)/W, zn=sp.getZ(v)/D;
+        var wave=Math.sin(xn*Math.PI*2.5+i)*.6+Math.cos(zn*Math.PI*3+i*.7)*.5;
+        sp.setY(v, yv+wave);
+      }
+    }
+    sp.needsUpdate=true; geo.computeVertexNormals();
+    geo.translate(0, s.y - s.h/2, 0);
+
+    var solidM=new THREE.MeshPhongMaterial({color:s.col,transparent:true,opacity:.82,side:THREE.DoubleSide});
+    var wireM=new THREE.MeshBasicMaterial({color:s.wCol,wireframe:true,transparent:true,opacity:s.op+.04});
+    var xrayM=new THREE.MeshBasicMaterial({color:s.wCol,wireframe:true,transparent:true,opacity:s.op*.7});
+    var solid=new THREE.Mesh(geo,solidM);
+    var wire=new THREE.Mesh(geo,wireM);
+    var xray=new THREE.Mesh(geo,xrayM);
+    geoScene.add(solid,wire,xray);
+    geoMeshes.push({solid,wire,xray,name:s.name});
+  });
+
+  /* ── ORE VEINS ── */
+  var veins=[
+    {ax:-30,ay:-88,az:-15, bx:15,by:-92,bz:10},
+    {ax:20,ay:-90,az:5,    bx:-5,by:-95,bz:-20},
+    {ax:-10,ay:-92,az:20,  bx:30,by:-88,bz:-5},
+    {ax:0,ay:-86,az:-10,   bx:-20,by:-94,bz:15},
+  ];
+  veins.forEach(v=>{
+    var pts=[new THREE.Vector3(v.ax,v.ay,v.az),new THREE.Vector3(v.bx,v.by,v.bz)];
+    var curve=new THREE.CatmullRomCurve3([
+      pts[0],
+      new THREE.Vector3((v.ax+v.bx)/2+Math.random()*10-5,(v.ay+v.by)/2-4,(v.az+v.bz)/2+Math.random()*8-4),
+      pts[1]
+    ]);
+    var tubeGeo=new THREE.TubeGeometry(curve,16,.6,8,false);
+    var tubeSolid=new THREE.Mesh(tubeGeo,new THREE.MeshPhongMaterial({color:0xFFB830,emissive:0xFFB830,emissiveIntensity:.5,transparent:true,opacity:.85}));
+    var tubeWire=new THREE.Mesh(tubeGeo,new THREE.MeshBasicMaterial({color:0xFFB830,wireframe:true,transparent:true,opacity:.6}));
+    var tubeXray=new THREE.Mesh(tubeGeo,new THREE.MeshBasicMaterial({color:0xFFB830,transparent:true,opacity:.55}));
+    geoScene.add(tubeSolid,tubeWire,tubeXray);
+    geoMeshes.push({solid:tubeSolid,wire:tubeWire,xray:tubeXray,name:"vein"});
+  });
+  document.getElementById("geo-veins").textContent=veins.length;
+
+  /* ── MINE SHAFTS + MARKERS ── */
+  var mines=mineData.length>0 ? mineData : [
+    {id:0,name:"McArthur River",tons:3400},{id:1,name:"Cigar Lake",tons:2800},
+    {id:2,name:"Rabbit Lake",tons:800},{id:3,name:"Athabasca",tons:1200},
+    {id:4,name:"Key Lake",tons:600}
+  ];
+  var maxT=Math.max(...mines.map(m=>m.tons),1);
+
+  var shaftPositions=[
+    [-28,20],[-8,25],[20,18],[0,-10],[-18,-20],[30,-5],[12,-22],[-32,-8]
+  ];
+
+  mines.forEach((mine,i)=>{
+    var [sx,sz]=shaftPositions[i%shaftPositions.length];
+    var depth=80+Math.floor(mine.tons/maxT*40);
+
+    /* shaft cylinder */
+    var shaftGeo=new THREE.CylinderGeometry(.8,.8,depth,8);
+    var shaftSolid=new THREE.Mesh(shaftGeo,new THREE.MeshPhongMaterial({color:0x003322,transparent:true,opacity:.7}));
+    var shaftWire=new THREE.Mesh(shaftGeo,new THREE.MeshBasicMaterial({color:0x00FFB8,wireframe:true,transparent:true,opacity:.55}));
+    var shaftXray=new THREE.Mesh(shaftGeo,new THREE.MeshBasicMaterial({color:0x00FFB8,transparent:true,opacity:.3}));
+    [shaftSolid,shaftWire,shaftXray].forEach(m=>m.position.set(sx,-depth/2,sz));
+    geoScene.add(shaftSolid,shaftWire,shaftXray);
+    geoMeshes.push({solid:shaftSolid,wire:shaftWire,xray:shaftXray});
+
+    /* surface marker */
+    var markerGeo=new THREE.ConeGeometry(2, 5, 6);
+    var markerMat=new THREE.MeshPhongMaterial({color:0x00FFB8,emissive:0x00FFB8,emissiveIntensity:.7,transparent:true,opacity:.9});
+    var marker=new THREE.Mesh(markerGeo,markerMat);
+    marker.position.set(sx,4,sz);
+    marker.userData={name:mine.name||"Mine #"+mine.id, depth, tons:mine.tons};
+    geoScene.add(marker);
+    geoMineMarkers.push({mesh:marker});
+
+    /* halo ring at surface */
+    var ringGeo=new THREE.TorusGeometry(2.8,.12,8,32);
+    var ringMat=new THREE.MeshBasicMaterial({color:0x00FFB8,transparent:true,opacity:.4});
+    var ring=new THREE.Mesh(ringGeo,ringMat);
+    ring.rotation.x=Math.PI/2; ring.position.set(sx,.5,sz);
+    geoScene.add(ring);
+
+    /* bottom ore chamber */
+    var chamberGeo=new THREE.SphereGeometry(2.5+mine.tons/maxT*2, 12, 8);
+    var chamberSolid=new THREE.Mesh(chamberGeo,new THREE.MeshPhongMaterial({color:0xFFB830,emissive:0xFFB830,emissiveIntensity:.4,transparent:true,opacity:.75}));
+    var chamberWire=new THREE.Mesh(chamberGeo,new THREE.MeshBasicMaterial({color:0xFFB830,wireframe:true,transparent:true,opacity:.5}));
+    var chamberXray=new THREE.Mesh(chamberGeo,new THREE.MeshBasicMaterial({color:0xFFB830,transparent:true,opacity:.35}));
+    [chamberSolid,chamberWire,chamberXray].forEach(m=>m.position.set(sx,-depth+4,sz));
+    geoScene.add(chamberSolid,chamberWire,chamberXray);
+    geoMeshes.push({solid:chamberSolid,wire:chamberWire,xray:chamberXray});
+  });
+
+  document.getElementById("geo-mines").textContent=mines.length;
+  document.getElementById("geo-depth").textContent="0 – "+Math.round(STRATA[STRATA.length-1].y*-10)+"m";
+
+  /* ── GROUND GRID ── */
+  var grid=new THREE.GridHelper(W,20,0x00FFB8,0x002211);
+  grid.material.transparent=true; grid.material.opacity=.18;
+  geoScene.add(grid);
+
+  /* ── SCAN PLANE (animated x-ray pulse) ── */
+  var scanGeo=new THREE.PlaneGeometry(W, Math.abs(STRATA[STRATA.length-1].y)*1.1);
+  scanGeo.rotateZ(Math.PI/2);
+  var scanMat=new THREE.MeshBasicMaterial({color:0x00D4FF,transparent:true,opacity:.06,side:THREE.DoubleSide});
+  var scanPlane=new THREE.Mesh(scanGeo,scanMat);
+  scanPlane.userData.isScan=true;
+  scanPlane.position.set(-W/2,-40,0);
+  geoScene.add(scanPlane);
+
+  updateGeoMaterials();
+}
+
+function animateGeo(){
+  geoAnimFrame=requestAnimationFrame(animateGeo);
+  var T=Date.now()*.001;
+
+  if(geoScene){
+    /* orbit group rotation */
+    geoScene.rotation.y=geoControls.rotY;
+    geoScene.rotation.x=geoControls.rotX;
+    geoCamera.position.setLength(Math.max(80,Math.min(320, 160*geoControls.zoom)));
+
+    /* marker pulse */
+    geoMineMarkers.forEach((m,i)=>{
+      m.mesh.scale.setScalar(1+Math.sin(T*2+i*.7)*.1);
+      m.mesh.material.emissiveIntensity=.5+Math.sin(T*1.5+i)*.3;
+    });
+
+    /* scan plane sweep */
+    geoScanT=(geoScanT+.004)%1;
+    var scanW=120;
+    geoScene.traverse(obj=>{
+      if(obj.userData.isScan){
+        obj.position.x=-scanW/2+geoScanT*scanW;
+        obj.material.opacity=.04+Math.sin(geoScanT*Math.PI)*.07;
+      }
+    });
+  }
+
+  if(geoRenderer&&geoScene&&geoCamera) geoRenderer.render(geoScene,geoCamera);
+}
+
+function cleanupGeo(){
+  if(geoAnimFrame){cancelAnimationFrame(geoAnimFrame);geoAnimFrame=null;}
+  if(geoRenderer){geoRenderer.dispose();geoRenderer=null;}
+  geoScene=null;geoCamera=null;geoMeshes=[];geoMineMarkers=[];
+}
+
+/* ══ INIT ══ */
+/* init globe immediately — no wallet needed */
+window.addEventListener("load", function(){
+  if(!window.ethereum) document.getElementById("noMM").classList.add("show");
+  document.getElementById("connectBtn").onclick   = connectWallet;
+  document.getElementById("loadIntelBtn").onclick = loadIntelligence;
+  document.getElementById("mineInfoBtn").onclick  = getMineInfo;
+  document.getElementById("getMinerBtn").onclick  = getMiner;
+  document.getElementById("getReservesBtn").onclick = getReserves;
+  document.getElementById("addMinerBtn").onclick  = addMiner;
+  document.getElementById("storeResBtn").onclick  = storeReserves;
+  document.getElementById("setNameBtn").onclick   = setMineName;
+  document.getElementById("transferBtn").onclick  = transferOwnership;
+  requestAnimationFrame(function(){
+    requestAnimationFrame(function(){
+      init3DMap();
+      initGlobe();
+      setTimeout(initGeoViewer, 80);
+    });
+  });
+  log("ZUC Command Center ready. Click Initialize to connect.", "if");
+});
+
+/* patch loadIntelligence to rebuild globe after data is ready */
+var _loadIntelOrig=loadIntelligence;
+loadIntelligence=async function(){
+  await _loadIntelOrig();
+  buildGlobeNetwork();
+  document.getElementById("g-mines").textContent=mineData.length;
+  document.getElementById("g-miners").textContent=minerData.length;
+  document.getElementById("g-ore").textContent=minerData.reduce((a,m)=>a+m.ore,0).toLocaleString();
+  document.getElementById("g-conns").textContent=globeEdges.length;
+  buildGeoTerrain();
+};
+
+/* fire a tx pulse on every confirmed tx */
+var _runTxOrig=runTx;
+runTx=async function(opts){
+  var patched={...opts,onSuccess:(tx)=>{
+    if(opts.onSuccess)opts.onSuccess(tx);
+    for(var i=0;i<4;i++)setTimeout(spawnTxPulse,i*180);
+  }};
+  await _runTxOrig(patched);
+};
+
+if(!window.ethereum)document.getElementById("noMM").classList.add("show");
+document.getElementById("connectBtn").onclick=connectWallet;
+document.getElementById("loadIntelBtn").onclick=loadIntelligence;
+document.getElementById("mineInfoBtn").onclick=getMineInfo;
+document.getElementById("getMinerBtn").onclick=getMiner;
+document.getElementById("getReservesBtn").onclick=getReserves;
+document.getElementById("addMinerBtn").onclick=addMiner;
+document.getElementById("storeResBtn").onclick=storeReserves;
+document.getElementById("setNameBtn").onclick=setMineName;
+document.getElementById("transferBtn").onclick=transferOwnership;
+</script>
+</body>
+</html>
