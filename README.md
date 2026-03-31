@@ -22,9 +22,35 @@
 
 ## What This Is
 
-ZUC Mine Command Center is a production-grade Web3 dashboard for a live uranium mining registry contract on the XRPL EVM Sidechain. It demonstrates end-to-end Solidity + frontend integration — connect MetaMask, read on-chain data, and write transactions directly from the UI.
+ZUC Mine Command Center is the **operational control layer** for a live on-chain uranium mining system deployed on the XRPL EVM Sidechain.
 
-**No backend. No API. No framework. One HTML file reads and writes to the blockchain in real time.**
+It is not a static dashboard — it is a **direct execution interface over a production Solidity contract**.
+
+Through a single frontend surface, operators can:
+
+- read live on-chain state (miners, reserves, ownership)
+- execute contract functions via signed transactions
+- monitor network conditions in real time (block height, gas, latency)
+- visualize system topology and resource distribution in 3D
+
+The system is built with a strict architecture constraint:
+
+> **No backend. No API. No middleware.**
+
+### Data Flow
+
+UI (index.html)  
+→ ethers.js (provider + signer)  
+→ XRPL EVM Sidechain (RPC)  
+→ ZUCMine.sol (on-chain state + logic)
+
+### Guarantees
+
+- every state update is on-chain truth  
+- every action is a signed transaction  
+- every visualization reflects live contract state  
+
+In practice, this functions as a **blockchain-native command center**, where the UI is not a wrapper — it is the execution surface of the protocol itself.
 
 ![ScreenRecorderProject31](https://github.com/user-attachments/assets/1511e397-650e-4ea2-b92b-0e3476dd36f5)
 
@@ -69,6 +95,8 @@ ZUC Mine Command Center is a production-grade Web3 dashboard for a live uranium 
 - ✅ Network health indicators (block time, gas, chain ID, RPC status)
 
 ## On-Chain Command Execution
+This interface allows direct execution of contract write functions via MetaMask, exposing the full transaction lifecycle from initiation to confirmation.
+
 <img width="2170" height="1275" alt="chrome_LLmjl54pGL" src="https://github.com/user-attachments/assets/eed28c02-369f-4988-8fad-0b1c1e5a3dd6" />
 
 ---
