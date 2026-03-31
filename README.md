@@ -1,4 +1,6 @@
 # ⛏ ZUC Mine Command Center
+<img width="1536" height="446" alt="ChatGPT Image Mar 30, 2026, 11_50_04 PM" src="https://github.com/user-attachments/assets/9ae1a64f-dfee-449c-b77c-f3c065828bc2" />
+
 
 > Real-time uranium mine operations dashboard built on the **XRPL EVM Sidechain Testnet**.
 > A fully deployed Solidity contract powering a live Web3 dashboard — no backend, no server, one HTML file.
@@ -12,7 +14,7 @@
 
 ## 🔴 Live Demo
 
-**[View Dashboard →](http://zuc-dashboard.surge.sh/)**
+**[View Dashboard →](https://zuc-mine-command-center.vercel.app/)**
 
 **Contract on Explorer →** [0x22ACA8...97bE31](https://explorer.testnet.xrplevm.org/address/0x22ACA8269801bF50d96c7e7F296c11799597bE31)
 
