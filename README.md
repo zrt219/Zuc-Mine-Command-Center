@@ -25,7 +25,8 @@ ZUC Mine Command Center is a production-grade Web3 dashboard for a live uranium 
 **No backend. No API. No framework. One HTML file reads and writes to the blockchain in real time.**
 
 <!-- 🔥 HERO IMAGE (FULL DASHBOARD OVERVIEW) -->
-![ZUC Dashboard Overview](https://i.imgur.com/SRQrJ1n.gif)
+![ZUC Dashboard Overview](![ScreenRecorderProject31](https://github.com/user-attachments/assets/36ffc316-c08c-4b43-8c55-cbfc71262a55)
+)
 
 ---
 
