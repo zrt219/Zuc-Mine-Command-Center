@@ -166,7 +166,7 @@ minerCount() → uint256
 | Charts | Chart.js 4.4.1 (CDN) |
 | Frontend | Vanilla HTML/CSS/JS — zero build step |
 | Fonts | Orbitron, Rajdhani (Google Fonts) |
-| Hosting | GitHub Pages |
+| Hosting | Vercel |
 
 ---
 
