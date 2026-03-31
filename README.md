@@ -24,9 +24,9 @@ ZUC Mine Command Center is a production-grade Web3 dashboard for a live uranium 
 
 **No backend. No API. No framework. One HTML file reads and writes to the blockchain in real time.**
 
-<!-- 🔥 HERO IMAGE (FULL DASHBOARD OVERVIEW) -->
-![ZUC Dashboard Overview](![ScreenRecorderProject31](https://github.com/user-attachments/assets/36ffc316-c08c-4b43-8c55-cbfc71262a55)
-)
+![ScreenRecorderProject31](https://github.com/user-attachments/assets/1511e397-650e-4ea2-b92b-0e3476dd36f5)
+
+
 
 ---
 
@@ -42,29 +42,32 @@ ZUC Mine Command Center is a production-grade Web3 dashboard for a live uranium 
 
 ### Dashboard
 
-<!-- 🌐 GLOBE GIF -->
-![XRPL Network Globe](./assets/globe-topology.gif)
-
-- ✅ Three.js 3D mine network map with animated node connections
-
-<!-- 🧠 SPATIAL MAP GIF -->
-![3D Spatial Mine Map](./assets/spatial-map.gif)
-
 - ✅ Three.js interactive globe showing node topology
 
-<!-- ⛏ GEOLOGICAL GIF -->
-![Geological Terrain Viewer](./assets/geological-survey.gif)
+![ScreenRecorderProject33_1](https://github.com/user-attachments/assets/59b8784e-867c-4c1f-b4e5-0c53335e3365)
+
+
+- ✅ Three.js 3D mine network map with animated node connection
+  
+![ScreenRecorderProject34](https://github.com/user-attachments/assets/f67c1198-ab50-4f40-b248-d48a81532643)
 
 - ✅ Three.js geological terrain viewer with ore deposit simulation
+  
+![ScreenRecorderProject36](https://github.com/user-attachments/assets/3d51411e-790b-453d-a9cf-cabe842b0713)
 
-<!-- 📊 ANALYTICS STATIC -->
-![Analytics Panels](./assets/analytics-panels.png)
+
+### 📊 ANALYTICS STATIC
+<img width="1419" height="1148" alt="chrome_H72zKAx6lm" src="https://github.com/user-attachments/assets/c9374b88-afb1-4704-a7e5-fd98417255c3" />
+
 
 - ✅ Chart.js reserve history charts with live updates
 - ✅ Cyberpunk dark theme — neon accents, scanlines, beam animations, depth glow
 - ✅ Responsive layout (desktop + mobile)
 - ✅ On-chain transaction log feed with explorer links
 - ✅ Network health indicators (block time, gas, chain ID, RPC status)
+
+## On-Chain Command Execution
+<img width="2170" height="1275" alt="chrome_LLmjl54pGL" src="https://github.com/user-attachments/assets/eed28c02-369f-4988-8fad-0b1c1e5a3dd6" />
 
 ---
 
@@ -218,16 +221,15 @@ forge create ZUCMine.sol:ZUCMine \
 
 ---
 
-## Coming Soon
- 
-More projects being built on XRPL EVM Testnet:
- 
+## On-Chain Systems Portfolio
+
 | Project | Description | Status |
 |---------|-------------|--------|
-| U235 Fuel Cycle Pipeline | Uranium processing pipeline — 6-stage manufacturing contract | 🔜 Coming Soon |
-| Dark Matter Yield Farm | Black hole staking protocol with quantum yield mechanics | 🔜 Coming Soon |
-| COHR Lab Simulator | Coherent Corp photonics fab — batch pipeline on-chain | 🔜 Coming Soon |
-| Black Hole Observatory | 3-contract deep space station — ship, registry, mission control | 🔜 Coming Soon ||
+| **[ZUC Mine Command Center](https://github.com/zrt219/Zuc-Mine-Command-Center)** | On-chain uranium mining operations dashboard — real-time reserve tracking, miner registry, and contract interaction via a fully frontend-driven command interface | ✅ Live |
+| **[U235 Fuel Cycle](https://github.com/zrt219/-U235-Fuel-Cycle-)** | Nuclear fuel cycle pipeline — uranium ore to enriched fuel rod, deterministic multi-stage processing with full on-chain traceability | ✅ Live |
+| **[ISR Network](https://github.com/zrt219/ISR-Network)** | Intelligence surveillance reconnaissance system — on-chain asset tracking, mission lifecycle state machine, and role-based operator control | ✅ Live |
+| **[Dark Matter Farm](https://github.com/zrt219/Dark-Matter-Farm)** | DeFi yield protocol — experimental high-convexity farming system with custom reward mechanics and on-chain state-driven emissions | ✅ Live |
+---
 
 ---
 
