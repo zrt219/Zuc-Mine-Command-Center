@@ -24,6 +24,8 @@ ZUC Mine Command Center is a production-grade Web3 dashboard for a live uranium 
 
 **No backend. No API. No framework. One HTML file reads and writes to the blockchain in real time.**
 
+<!-- 🔥 HERO IMAGE (FULL DASHBOARD OVERVIEW) -->
+![ZUC Dashboard Overview]()
 ---
 
 ## Features
@@ -37,9 +39,25 @@ ZUC Mine Command Center is a production-grade Web3 dashboard for a live uranium 
 - ✅ Live block number and gas price monitoring
 
 ### Dashboard
+
+<!-- 🌐 GLOBE GIF -->
+![XRPL Network Globe](./assets/globe-topology.gif)
+
 - ✅ Three.js 3D mine network map with animated node connections
+
+<!-- 🧠 SPATIAL MAP GIF -->
+![3D Spatial Mine Map](./assets/spatial-map.gif)
+
 - ✅ Three.js interactive globe showing node topology
+
+<!-- ⛏ GEOLOGICAL GIF -->
+![Geological Terrain Viewer](./assets/geological-survey.gif)
+
 - ✅ Three.js geological terrain viewer with ore deposit simulation
+
+<!-- 📊 ANALYTICS STATIC -->
+![Analytics Panels](./assets/analytics-panels.png)
+
 - ✅ Chart.js reserve history charts with live updates
 - ✅ Cyberpunk dark theme — neon accents, scanlines, beam animations, depth glow
 - ✅ Responsive layout (desktop + mobile)
