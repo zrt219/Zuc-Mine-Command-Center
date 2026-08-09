@@ -79,9 +79,6 @@ header::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;ba
 .cbtn:hover::before{transform:scaleX(1)}
 .cbtn.on{background:rgba(0,255,184,.08)}
 .cbtn:disabled{opacity:.4;cursor:not-allowed}
-.sfx-btn{border-color:var(--neon2);color:var(--neon2);box-shadow:0 0 10px rgba(0,212,255,.1)}
-.sfx-btn:hover{color:#000}
-.sfx-btn::before{background:var(--neon2)}
 
 /* metric cards */
 .top-row{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:12px}
@@ -403,7 +400,6 @@ input:disabled{opacity:.4;cursor:not-allowed}
     <div class="logo-main"><em>ZUC</em> Mine Command Center</div>
   </div>
   <div class="hdr-right">
-    <button class="cbtn sfx-btn" id="soundBtn">🔊 SFX ON</button>
     <div class="wi">
       <div class="wl">Operator</div>
       <div class="wa" id="walletAddr">Read-Only Telemetry</div>
@@ -739,74 +735,18 @@ var minerData = [], mineData = [];
 var reserveChart = null;
 var hudConfirmCallback = null;
 
-/* ══ WEB AUDIO SYNTHESIZER ══ */
+/* ══ MOCK WEB AUDIO (SFX DISABLED) ══ */
 window.ZUC = window.ZUC || {};
-ZUC.Audio = (function() {
-  var ctx = null;
-  var enabled = true;
-  function getCtx() {
-    if (!ctx) {
-      var AudioCtx = window.AudioContext || window.webkitAudioContext;
-      if (AudioCtx) ctx = new AudioCtx();
-    }
-    if (ctx && ctx.state === 'suspended') ctx.resume();
-    return ctx;
-  }
-  return {
-    toggle: function() { enabled = !enabled; return enabled; },
-    isEnabled: function() { return enabled; },
-    playHover: function() {
-      if (!enabled) return; var c = getCtx(); if (!c) return;
-      var osc = c.createOscillator(), g = c.createGain();
-      osc.type = 'sine'; osc.frequency.setValueAtTime(800, c.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(1200, c.currentTime + 0.04);
-      g.gain.setValueAtTime(0.02, c.currentTime); g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 0.04);
-      osc.connect(g); g.connect(c.destination); osc.start(); osc.stop(c.currentTime + 0.04);
-    },
-    playClick: function() {
-      if (!enabled) return; var c = getCtx(); if (!c) return;
-      var osc = c.createOscillator(), g = c.createGain();
-      osc.type = 'triangle'; osc.frequency.setValueAtTime(1400, c.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(400, c.currentTime + 0.06);
-      g.gain.setValueAtTime(0.05, c.currentTime); g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 0.06);
-      osc.connect(g); g.connect(c.destination); osc.start(); osc.stop(c.currentTime + 0.06);
-    },
-    playScan: function() {
-      if (!enabled) return; var c = getCtx(); if (!c) return;
-      var osc = c.createOscillator(), g = c.createGain();
-      osc.type = 'sawtooth'; osc.frequency.setValueAtTime(300, c.currentTime);
-      osc.frequency.linearRampToValueAtTime(1800, c.currentTime + 0.18);
-      g.gain.setValueAtTime(0.03, c.currentTime); g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 0.18);
-      osc.connect(g); g.connect(c.destination); osc.start(); osc.stop(c.currentTime + 0.18);
-    },
-    playTxSubmit: function() {
-      if (!enabled) return; var c = getCtx(); if (!c) return;
-      [440, 880].forEach(function(freq, i) {
-        var osc = c.createOscillator(), g = c.createGain();
-        osc.type = 'sine'; osc.frequency.setValueAtTime(freq, c.currentTime + i * 0.08);
-        g.gain.setValueAtTime(0.04, c.currentTime + i * 0.08); g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + i * 0.08 + 0.12);
-        osc.connect(g); g.connect(c.destination); osc.start(c.currentTime + i * 0.08); osc.stop(c.currentTime + i * 0.08 + 0.12);
-      });
-    },
-    playConfirm: function() {
-      if (!enabled) return; var c = getCtx(); if (!c) return;
-      [523.25, 659.25, 783.99].forEach(function(freq, i) {
-        var osc = c.createOscillator(), g = c.createGain();
-        osc.type = 'sine'; osc.frequency.setValueAtTime(freq, c.currentTime + i * 0.07);
-        g.gain.setValueAtTime(0.05, c.currentTime + i * 0.07); g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + i * 0.07 + 0.15);
-        osc.connect(g); g.connect(c.destination); osc.start(c.currentTime + i * 0.07); osc.stop(c.currentTime + i * 0.07 + 0.15);
-      });
-    },
-    playAlert: function() {
-      if (!enabled) return; var c = getCtx(); if (!c) return;
-      var osc = c.createOscillator(), g = c.createGain();
-      osc.type = 'square'; osc.frequency.setValueAtTime(300, c.currentTime);
-      osc.frequency.setValueAtTime(150, c.currentTime + 0.1);
-      g.gain.setValueAtTime(0.04, c.currentTime); g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 0.25);
-      osc.connect(g); g.connect(c.destination); osc.start(); osc.stop(c.currentTime + 0.25);
-    }
-  };
-})();
+ZUC.Audio = {
+  toggle: function() { return false; },
+  isEnabled: function() { return false; },
+  playHover: function() {},
+  playClick: function() {},
+  playScan: function() {},
+  playTxSubmit: function() {},
+  playConfirm: function() {},
+  playAlert: function() {}
+};
 
 /* ══ HELPERS ══ */
 function log(msg, type="if") {
@@ -1802,12 +1742,6 @@ function setupVisibilityObserver() {
 /* ══ DOM LOAD & BINDINGS ══ */
 window.addEventListener("load", function () {
   if (!window.ethereum) document.getElementById("noMM").classList.add("show");
-
-  document.getElementById("soundBtn").onclick = function() {
-    var enabled = ZUC.Audio.toggle();
-    this.textContent = enabled ? "🔊 SFX ON" : "🔇 SFX OFF";
-    this.classList.toggle("on", enabled);
-  };
 
   document.getElementById("hudModalClose").onclick = hideHudModal;
   document.getElementById("hudModalCancel").onclick = hideHudModal;
