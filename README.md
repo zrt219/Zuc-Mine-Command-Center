@@ -56,6 +56,10 @@ In practice, this functions as a **blockchain-native command center**, where the
 
 
 
+![ScreenRecorderProject31](https://github.com/user-attachments/assets/1511e397-650e-4ea2-b92b-0e3476dd36f5)
+
+
+
 ---
 
 ## Features
