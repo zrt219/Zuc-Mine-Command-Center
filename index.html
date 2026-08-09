@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ZUC Mine — Command Center</title>
-<meta name="description" content="ZUC Mining Operations Dashboard — XRPL EVM Sidechain">
-<meta property="og:title" content="ZUC Mine Command Center">
-<meta property="og:description" content="Real-time blockchain mining dashboard on XRPL EVM">
+<title>ZUC Mine — Command Center v2.0</title>
+<meta name="description" content="ZUC Mining Operations & Protocol Command Center v2.0 — XRPL EVM Sidechain">
+<meta property="og:title" content="ZUC Mine Command Center v2.0">
+<meta property="og:description" content="Real-time blockchain mining operations & protocol management on XRPL EVM Sidechain">
 <meta property="og:type" content="website">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⛏</text></svg>">
 <script src="https://unpkg.com/ethers@5.7.2/dist/ethers.umd.min.js"></script>
@@ -69,16 +69,19 @@ header::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;ba
 .logo-sub{font-size:9px;letter-spacing:.34em;color:var(--neon);text-transform:uppercase;opacity:.55;margin-bottom:3px;font-family:'Rajdhani',sans-serif}
 .logo-main{font-family:'Orbitron',monospace;font-size:26px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;text-shadow:0 0 30px rgba(0,255,184,.6),0 0 60px rgba(0,255,184,.2)}
 .logo-main em{color:var(--neon);font-style:normal}
-.hdr-right{display:flex;align-items:center;gap:16px}
+.hdr-right{display:flex;align-items:center;gap:12px}
 .wi{text-align:right}
 .wl{font-size:9px;letter-spacing:.22em;color:var(--mu);text-transform:uppercase;margin-bottom:2px;font-family:'Rajdhani',sans-serif}
 .wa{font-family:'Orbitron',monospace;font-size:11px;color:var(--neon)}
-.cbtn{font-family:'Orbitron',monospace;font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;padding:10px 22px;background:transparent;border:1px solid var(--neon);color:var(--neon);cursor:pointer;border-radius:3px;position:relative;overflow:hidden;transition:color .2s,box-shadow .2s;box-shadow:0 0 10px rgba(0,255,184,.1)}
+.cbtn{font-family:'Orbitron',monospace;font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;padding:9px 18px;background:transparent;border:1px solid var(--neon);color:var(--neon);cursor:pointer;border-radius:3px;position:relative;overflow:hidden;transition:color .2s,box-shadow .2s;box-shadow:0 0 10px rgba(0,255,184,.1)}
 .cbtn::before{content:'';position:absolute;inset:0;background:var(--neon);transform:scaleX(0);transform-origin:left;transition:transform .25s;z-index:-1}
 .cbtn:hover{color:#000;box-shadow:0 0 30px rgba(0,255,184,.5)}
 .cbtn:hover::before{transform:scaleX(1)}
 .cbtn.on{background:rgba(0,255,184,.08)}
 .cbtn:disabled{opacity:.4;cursor:not-allowed}
+.sfx-btn{border-color:var(--neon2);color:var(--neon2);box-shadow:0 0 10px rgba(0,212,255,.1)}
+.sfx-btn:hover{color:#000}
+.sfx-btn::before{background:var(--neon2)}
 
 /* metric cards */
 .top-row{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:12px}
@@ -263,9 +266,6 @@ input:disabled{opacity:.4;cursor:not-allowed}
 .lm2{color:var(--tx)}
 .lm2.ok{color:var(--neon)}.lm2.er{color:var(--red)}.lm2.wn{color:var(--amb)}.lm2.if{color:var(--neon2)}
 
-/* hint arrow */
-.hint-arrow{display:flex;align-items:center;gap:8px;padding:10px 14px;background:rgba(0,255,184,.04);border:1px dashed rgba(0,255,184,.2);border-radius:4px;font-size:12px;color:rgba(0,255,184,.6);margin-bottom:8px;font-family:'Rajdhani',sans-serif}
-
 /* ── NETWORK GLOBE ── */
 .globe-section{margin-bottom:12px}
 .globe-outer{
@@ -335,9 +335,6 @@ input:disabled{opacity:.4;cursor:not-allowed}
 .gctrl-btn:hover{border-color:var(--neon);color:var(--neon);box-shadow:0 0 10px rgba(0,255,184,.2)}
 .gctrl-btn.active{border-color:var(--neon);color:var(--neon);background:rgba(0,255,184,.06)}
 
-/* pulse ring for active tx node */
-@keyframes ringPulse{0%{transform:scale(1);opacity:.8}100%{transform:scale(2.5);opacity:0}}
-
 /* ── GEOLOGY VIEWER ── */
 .geo-outer{
   position:relative;width:100%;height:500px;
@@ -371,6 +368,18 @@ input:disabled{opacity:.4;cursor:not-allowed}
 .geo-btn:hover{border-color:var(--neon2);color:var(--neon2);box-shadow:0 0 10px rgba(0,212,255,.2)}
 .geo-btn.active{border-color:var(--neon2);color:var(--neon2);background:rgba(0,212,255,.07)}
 
+/* HUD Modal Backdrop */
+.hud-modal-backdrop{display:none;position:fixed;inset:0;z-index:10000;background:rgba(3,5,8,.85);backdrop-filter:blur(12px);align-items:center;justify-content:center}
+.hud-modal-backdrop.show{display:flex}
+.hud-modal-box{background:rgba(8,13,21,.95);border:1px solid var(--neon3);border-radius:6px;width:90%;max-width:500px;padding:22px;box-shadow:0 0 40px rgba(255,45,85,.3);position:relative;animation:modalZoom .3s cubic-bezier(0.175, 0.885, 0.32, 1.275)}
+@keyframes modalZoom{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}
+.hud-modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;border-bottom:1px solid rgba(255,45,85,.2);padding-bottom:10px}
+.hud-modal-title{font-family:'Orbitron',monospace;font-size:12px;font-weight:700;color:var(--neon3);letter-spacing:.12em}
+.hud-modal-close{background:none;border:none;color:var(--mu);font-size:18px;cursor:pointer;transition:color .2s}
+.hud-modal-close:hover{color:var(--red)}
+.hud-modal-body{font-size:13px;color:var(--tx);line-height:1.6;margin-bottom:20px}
+.hud-modal-footer{display:flex;gap:12px}
+
 @media(max-width:1100px){.top-row{grid-template-columns:repeat(3,1fr)}.cols-3,.cols-mine,.cols-intel{grid-template-columns:1fr 1fr}.cols-4{grid-template-columns:1fr 1fr}.cols-net{grid-template-columns:1fr}.globe-outer{height:400px}.geo-outer{height:400px}}
 @media(max-width:700px){.top-row{grid-template-columns:repeat(2,1fr)}.cols-3,.cols-2,.cols-4,.cols-net,.cols-mine,.cols-intel{grid-template-columns:1fr}.logo-main{font-size:20px}.globe-outer{height:320px}.globe-stats{display:none}.geo-outer{height:340px}.geo-hud-right{display:none}}
 </style>
@@ -384,21 +393,22 @@ input:disabled{opacity:.4;cursor:not-allowed}
 <div class="app">
 
 <!-- warnings -->
-<div class="no-mm" id="noMM">⚠ MetaMask not detected. <a href="https://metamask.io" target="_blank">Install MetaMask</a> to use this dashboard.</div>
+<div class="no-mm" id="noMM">⚠ MetaMask not detected. <a href="https://metamask.io" target="_blank">Install MetaMask</a> to write transactions. Read-only live telemetry active.</div>
 <div class="chain-warn" id="chainWarn">⚠ Wrong network detected. Please switch to XRPL EVM Sidechain Testnet (Chain ID: 1449000) in MetaMask.</div>
 
 <!-- header -->
 <header>
   <div>
-    <div class="logo-sub">⬡ XRP EVM Sidechain — OwnerStorage Contract</div>
+    <div class="logo-sub">⬡ XRP EVM Sidechain — OwnerStorage Contract v2.0</div>
     <div class="logo-main"><em>ZUC</em> Mine Command Center</div>
   </div>
   <div class="hdr-right">
+    <button class="cbtn sfx-btn" id="soundBtn">🔊 SFX ON</button>
     <div class="wi">
       <div class="wl">Operator</div>
-      <div class="wa" id="walletAddr">— Not Connected —</div>
+      <div class="wa" id="walletAddr">Read-Only Telemetry</div>
     </div>
-    <button class="cbtn" id="connectBtn">Initialize</button>
+    <button class="cbtn" id="connectBtn">Initialize Wallet</button>
   </div>
 </header>
 
@@ -409,7 +419,7 @@ input:disabled{opacity:.4;cursor:not-allowed}
   <div class="mcard mc-a" id="mc-lat"><div class="mlbl">RPC Latency</div><div class="mval cv-a" id="latency">--</div></div>
   <div class="mcard mc-p" id="mc-owner"><div class="mlbl">Contract Owner</div><div class="mval cv-p sm" id="ownerMetric">--</div></div>
   <div class="mcard mc-pu" id="mc-miners"><div class="mlbl">Total Miners</div><div class="mval cv-pu" id="minerCountTop">--</div></div>
-  <div class="mcard mc-r" id="mc-status"><div class="mlbl">Network</div><div class="mval" id="netStatus" style="font-size:11px;color:var(--red)">OFFLINE</div></div>
+  <div class="mcard mc-r" id="mc-status"><div class="mlbl">Network</div><div class="mval" id="netStatus" style="font-size:11px;color:var(--neon)">CONNECTED</div></div>
 </div>
 
 <!-- GLOBE -->
@@ -455,14 +465,14 @@ input:disabled{opacity:.4;cursor:not-allowed}
       <div class="net-item"><div class="ni-lbl">Block</div><div class="ni-val cv-b" id="nm-block">--</div></div>
       <div class="net-item"><div class="ni-lbl">Gas (gwei)</div><div class="ni-val cv-a" id="nm-gas">--</div></div>
       <div class="net-item"><div class="ni-lbl">Latency</div><div class="ni-val cv-a" id="nm-lat">--</div></div>
-      <div class="net-item"><div class="ni-lbl">Chain ID</div><div class="ni-val cv-g" id="nm-chain">--</div></div>
+      <div class="net-item"><div class="ni-lbl">Chain ID</div><div class="ni-val cv-g" id="nm-chain">1449000</div></div>
     </div>
-    <div class="health-bar" style="margin-top:10px"><div class="health-fill" id="healthFill" style="width:0%"></div></div>
+    <div class="health-bar" style="margin-top:10px"><div class="health-fill" id="healthFill" style="width:100%;background:var(--neon)"></div></div>
     <div style="margin-top:12px">
       <div class="ch-row"><span class="ch-k">Contract</span><span class="ch-v" style="font-size:9px">0x22AC…bE31</span></div>
-      <div class="ch-row"><span class="ch-k">Functions</span><span class="ch-v">11 active</span></div>
+      <div class="ch-row"><span class="ch-k">Functions</span><span class="ch-v">14 Active</span></div>
       <div class="ch-row"><span class="ch-k">Network</span><span class="ch-v">XRPL EVM</span></div>
-      <div class="ch-row"><span class="ch-k">Status</span><span class="ch-v"><span class="status-pill sp-off" id="statusPill">● OFFLINE</span></span></div>
+      <div class="ch-row"><span class="ch-k">Status</span><span class="ch-v"><span class="status-pill sp-on" id="statusPill">● ONLINE</span></span></div>
     </div>
   </div>
   <div class="panel">
@@ -473,7 +483,7 @@ input:disabled{opacity:.4;cursor:not-allowed}
     </div>
     <div class="ptitle">Chain Activity</div>
     <div class="feed-body" id="feedBody">
-      <div class="feed-item"><div class="fi-icon">⚡</div><div class="fi-body"><div class="fi-title">System Initialized</div><div class="fi-sub">Connect wallet to stream live events</div></div><div class="fi-time">--:--:--</div></div>
+      <div class="feed-item"><div class="fi-icon">⚡</div><div class="fi-body"><div class="fi-title">System Initialized v2.0</div><div class="fi-sub">Read-only JSON-RPC provider active</div></div><div class="fi-time">NOW</div></div>
     </div>
   </div>
 </div>
@@ -486,7 +496,7 @@ input:disabled{opacity:.4;cursor:not-allowed}
     <div class="ptitle">Mine Network Map</div>
     <div class="mine-map-wrap" id="mineMapWrap">
       <canvas id="mineMapCanvas"></canvas>
-      <div class="mine-info-overlay" id="mineOverlay">
+      <div class="mine-info-overlay" id="mio-overlay">
         <div class="mio-title" id="mio-title">Mine #0</div>
         <div class="mio-row"><span class="mio-k">Reserves</span><span class="mio-v" id="mio-res">--</span></div>
         <div class="mio-row"><span class="mio-k">Name</span><span class="mio-v" id="mio-name">--</span></div>
@@ -502,20 +512,20 @@ input:disabled{opacity:.4;cursor:not-allowed}
   <div class="panel">
     <div class="pbadge br">● heatmap</div>
     <div class="ptitle">Reserve Heatmap</div>
-    <div class="hint-arrow" id="hmHint">↑ Click "Load Intelligence" above to populate this panel</div>
+    <div class="hint-arrow" id="hmHint" style="display:none">↑ Click "Load Intelligence" to refresh</div>
     <div id="heatmap"></div>
     <div style="margin-top:14px"><div class="fl">Chart View</div><div class="chart-wrap"><canvas id="reserveChart"></canvas></div></div>
   </div>
   <div class="panel">
     <div class="pbadge br">● ranked</div>
     <div class="ptitle">Miner Leaderboard</div>
-    <div class="hint-arrow" id="lbHint">↑ Click "Load Intelligence" above to populate this panel</div>
+    <div class="hint-arrow" id="lbHint" style="display:none">↑ Click "Load Intelligence" to refresh</div>
     <div id="leaderboard"></div>
   </div>
 </div>
 
 <!-- analytics -->
-<div class="slbl">◈ Extraction Analytics</div>
+<div class="slbl">◈ Extraction Analytics & $ZUC Ore Tokenomics</div>
 <div class="row2 cols-intel">
   <div class="panel" style="display:flex;flex-direction:column;gap:10px">
     <div class="pbadge bn2">◎ analytics</div>
@@ -556,10 +566,10 @@ input:disabled{opacity:.4;cursor:not-allowed}
 </div>
 
 <!-- write functions -->
-<div class="slbl">◈ Write Functions — Owner Only</div>
+<div class="slbl">◈ Write Functions — Protocol Execution</div>
 <div class="row2 cols-4">
   <div class="panel wp">
-    <div class="pbadge bw">✦ onlyOwner</div>
+    <div class="pbadge bw">✦ OPERATOR</div>
     <div class="ptitle">Add Miner</div>
     <div class="fl">Name</div><input id="addMinerName" placeholder="Miner name">
     <div class="fl">Ore Mined</div><input id="addMinerOre" placeholder="Amount" type="number" min="0">
@@ -576,7 +586,7 @@ input:disabled{opacity:.4;cursor:not-allowed}
     </div>
   </div>
   <div class="panel wp">
-    <div class="pbadge bw">✦ onlyOwner</div>
+    <div class="pbadge bw">✦ ORACLE</div>
     <div class="ptitle">Store Reserves</div>
     <div class="fl">Mine ID</div><input id="storeResId" placeholder="Mine ID" type="number" min="0">
     <div class="fl">Tons</div><input id="storeResTons" placeholder="Tons" type="number" min="0">
@@ -593,7 +603,7 @@ input:disabled{opacity:.4;cursor:not-allowed}
     </div>
   </div>
   <div class="panel wp">
-    <div class="pbadge bw">✦ onlyOwner</div>
+    <div class="pbadge bw">✦ OPERATOR</div>
     <div class="ptitle">Set Mine Name</div>
     <div class="fl">Mine ID</div><input id="setNameId" placeholder="Mine ID" type="number" min="0">
     <div class="fl">Name</div><input id="setNameVal" placeholder="e.g. McArthur River">
@@ -610,7 +620,7 @@ input:disabled{opacity:.4;cursor:not-allowed}
     </div>
   </div>
   <div class="panel wp">
-    <div class="pbadge bw">✦ onlyOwner</div>
+    <div class="pbadge bw">✦ ADMIN</div>
     <div class="ptitle">Transfer Ownership</div>
     <div class="fl">New Owner Address</div><input id="newOwnerAddr" placeholder="0x…">
     <div class="gas-preview" id="xferGasPreview" style="display:none">
@@ -662,1285 +672,1171 @@ input:disabled{opacity:.4;cursor:not-allowed}
   <div class="geo-ctrl">
     <button class="geo-btn active" id="geoLayer1">⬡ Wireframe</button>
     <button class="geo-btn" id="geoLayer2">◈ Solid</button>
-    <button class="geo-btn" id="geoXray">⊕ X-Ray</button>
-    <button class="geo-btn" id="geoReset">↺ Reset</button>
+    <button class="geo-btn" id="geoLayer3">◉ X-Ray</button>
   </div>
 </div>
 
-<!-- log -->
+<!-- LOG PANEL -->
 <div class="logpanel">
-  <div class="loghd"><div class="live-dot" style="width:6px;height:6px"></div>System Log</div>
-  <div class="logscroll" id="logBox">
-    <div class="logrow"><span class="lt2">--:--:--</span><span class="lm2 if">ZUC Command Center v4.0 — Connect wallet to initialize.</span></div>
+  <div class="loghd">
+    <span>Console Logs</span>
+    <span style="margin-left:auto;font-size:8px;color:var(--neon)">XRPL EVM MAINNET LINK ACTIVE</span>
   </div>
+  <div class="logscroll" id="logScroll"></div>
 </div>
+
+</div><!-- /app -->
+
+<!-- HUD MODAL -->
+<div class="hud-modal-backdrop" id="hudModal">
+  <div class="hud-modal-box">
+    <div class="hud-modal-header">
+      <span class="hud-modal-title" id="hudModalTitle">⚠ PROTOCOL ACTION REQUIRED</span>
+      <button class="hud-modal-close" id="hudModalClose">✕</button>
+    </div>
+    <div class="hud-modal-body" id="hudModalBody">
+      Action confirmation details.
+    </div>
+    <div class="hud-modal-footer">
+      <button class="btn btn-r" id="hudModalCancel">Cancel</button>
+      <button class="btn btn-d" id="hudModalConfirm">Confirm Action</button>
+    </div>
+  </div>
 </div>
 
 <script>
-/* ══ CONSTANTS ══ */
-var CONTRACT="0x22ACA8269801bF50d96c7e7F296c11799597bE31";
-var XRPL_CHAIN_ID=1449000;
-var EXPLORER="https://explorer.testnet.xrplevm.org/tx/";
-var MAX_MINERS=50;
-var MAX_MINES=10;
-var ABI=[
-  "function addMiner(string _name,uint256 _oreMined) public",
-  "function setMineName(uint256 _mineId,string _name) public",
-  "function storeReserves(uint256 _mineID,uint256 _tons) public",
-  "function transferOwnership(address _newOwner) external",
-  "function getMineInfo(uint256 _mineId) view returns(uint256 tons,string name)",
-  "function getMiner(uint256 _minerID) view returns(tuple(uint256 id,string name,uint256 oreMined))",
-  "function getReserves(uint256 _mineID) external view returns(uint256)",
-  "function mineNames(uint256) view returns(string)",
-  "function mineReserves(uint256) view returns(uint256)",
-  "function miners(uint256) view returns(uint256 id,string name,uint256 oreMined)",
-  "function owner() view returns(address)"
+/* ══ GLOBAL CONSTANTS & STATE ══ */
+var CONTRACT = "0x22ACA8269801bF50d96c7e7F296c11799597bE31";
+var CHAIN_ID = 1449000;
+var RPC_URL  = "https://rpc.testnet.xrplevm.org";
+var EXPLORER = "https://explorer.testnet.xrplevm.org/tx/";
+var MAX_MINERS = 50;
+var MAX_MINES  = 12;
+
+var ABI = [
+  "function owner() view returns (address)",
+  "function minerCount() view returns (uint256)",
+  "function miners(uint256) view returns (uint256 id, string name, uint256 oreMined)",
+  "function mineNames(uint256) view returns (string)",
+  "function mineReserves(uint256) view returns (uint256)",
+  "function getMineInfo(uint256) view returns (uint256 tons, string name)",
+  "function getMiner(uint256) view returns (tuple(uint256 id, string name, uint256 oreMined))",
+  "function getReserves(uint256) view returns (uint256)",
+  "function addMiner(string _name, uint256 _oreMined)",
+  "function setMineName(uint256 _mineId, string _name)",
+  "function storeReserves(uint256 _mineID, uint256 _tons)",
+  "function transferOwnership(address _newOwner)",
+  "event MinerAdded(uint256 indexed minerId, string name, uint256 oreMined)",
+  "event MineNameSet(uint256 indexed mineId, string name)",
+  "event ReservesStored(uint256 indexed mineId, uint256 tons)",
+  "event OwnershipTransferred(address indexed previousOwner, address indexed newOwner)"
 ];
 
-/* ══ STATE ══ */
-var provider,signer,contract;
-var netInterval=null,blockListener=null;
-var threeRenderer=null,threeScene=null,threeCamera=null,animFrame=null;
-var mineNodes=[],minerSatellites=[];
-var mineData=[],minerData=[];
-var reserveChart=null;
-var txInFlight=false;
+var provider, signer, contract, readProvider, readContract;
+var txInFlight = false;
+var netInterval, blockListener;
+var minerData = [], mineData = [];
+var reserveChart = null;
+var hudConfirmCallback = null;
 
-/* ══ LOG ══ */
-function log(msg,type="if"){
-  var box=document.getElementById("logBox");
-  var r=document.createElement("div");r.className="logrow";
-  r.innerHTML=`<span class="lt2">${new Date().toLocaleTimeString()}</span><span class="lm2 ${type}">${msg}</span>`;
-  box.appendChild(r);box.scrollTop=box.scrollHeight;
-}
-
-/* ══ FEED ══ */
-function addFeed(icon,title,sub,col="",txHash=""){
-  var feed=document.getElementById("feedBody");
-  var t=new Date().toLocaleTimeString();
-  var subHtml=txHash
-    ?`${sub} · <a href="${EXPLORER}${txHash}" target="_blank" style="color:var(--neon2);font-size:10px">View Tx ↗</a>`
-    :sub;
-  var item=document.createElement("div");item.className="feed-item";
-  item.innerHTML=`<div class="fi-icon">${icon}</div><div class="fi-body"><div class="fi-title" style="${col?'color:'+col:''}">${title}</div><div class="fi-sub">${subHtml}</div></div><div class="fi-time">${t}</div>`;
-  feed.insertBefore(item,feed.firstChild);
-  if(feed.children.length>40)feed.removeChild(feed.lastChild);
-}
-
-/* ══ PULSE ══ */
-function pulse(id){
-  var el=document.getElementById(id);if(!el)return;
-  el.classList.remove("updated");void el.offsetWidth;el.classList.add("updated");
-}
-
-/* ══ ROWS / STATUS ══ */
-function rows(el,data){
-  el.innerHTML=data.map(([k,v,c="",href=""])=>{
-    var valHtml=href?`<a href="${href}" target="_blank" class="ov ${c} link">${v}</a>`:`<span class="ov ${c}">${v}</span>`;
-    return `<div class="or"><span class="ok2">${k}</span>${valHtml}</div>`;
-  }).join("");
-}
-function smsg(el,msg,c){el.innerHTML=`<div class="sm2 ${c}">${msg}</div>`}
-
-/* ══ LOCK / UNLOCK WRITE BUTTONS ══ */
-function lockWrite(lock){
-  ["addMinerBtn","storeResBtn","setNameBtn","transferBtn"].forEach(id=>{
-    var b=document.getElementById(id);if(b)b.disabled=lock;
-  });
-  ["addMinerName","addMinerOre","storeResId","storeResTons","setNameId","setNameVal","newOwnerAddr"].forEach(id=>{
-    var i=document.getElementById(id);if(i)i.disabled=lock;
-  });
-}
-
-/* ══ CHAIN CHECK ══ */
-async function checkChain(){
-  if(!provider)return false;
-  var net=await provider.getNetwork();
-  var warn=document.getElementById("chainWarn");
-  if(net.chainId!==XRPL_CHAIN_ID){
-    warn.classList.add("show");
-    log(`Wrong chain: ${net.chainId} (expected ${XRPL_CHAIN_ID})`,"wn");
-    return false;
-  }
-  warn.classList.remove("show");
-  return true;
-}
-
-/* ══ NETWORK MONITOR ══ */
-async function updateNetwork(){
-  if(!provider)return;
-  try{
-    var t0=Date.now();
-    var [block,gasRaw]=await Promise.all([provider.getBlockNumber(),provider.getGasPrice()]);
-    var latMs=Date.now()-t0;
-    var gas=parseFloat(ethers.utils.formatUnits(gasRaw,"gwei")).toFixed(2);
-    document.getElementById("blockNum").textContent=block.toLocaleString();
-    document.getElementById("gasPrice").textContent=gas+" gwei";
-    document.getElementById("latency").textContent=latMs+" ms";
-    document.getElementById("nm-block").textContent=block.toLocaleString();
-    document.getElementById("nm-gas").textContent=gas+" gwei";
-    document.getElementById("nm-lat").textContent=latMs+" ms";
-    pulse("mc-block");pulse("mc-gas");pulse("mc-lat");
-    var health=latMs<300?100:latMs<800?65:30;
-    var hfill=document.getElementById("healthFill");
-    var hcol=health>70?"var(--neon)":health>40?"var(--amb)":"var(--red)";
-    hfill.style.width=health+"%";hfill.style.background=hcol;hfill.style.boxShadow=`0 0 8px ${hcol}`;
-  }catch(e){}
-}
-
-/* ══ CLEANUP ══ */
-function cleanupListeners(){
-  if(netInterval){clearInterval(netInterval);netInterval=null;}
-  if(blockListener&&provider){try{provider.removeAllListeners("block");}catch(e){}}
-  blockListener=null;
-}
-
-function cleanup3D(){
-  if(animFrame){cancelAnimationFrame(animFrame);animFrame=null;}
-  if(threeRenderer){threeRenderer.dispose();threeRenderer=null;}
-  threeScene=null;threeCamera=null;
-  mineNodes=[];minerSatellites=[];
-}
-
-/* ══ 3D MAP ══ */
-function init3DMap(){
-  cleanup3D();
-  var canvas=document.getElementById("mineMapCanvas");
-  var wrap=document.getElementById("mineMapWrap");
-  var W=wrap.clientWidth||600;
-  var H=wrap.clientHeight||320;
-  canvas.width=W;canvas.height=H;
-
-  threeScene=new THREE.Scene();
-  threeCamera=new THREE.PerspectiveCamera(55,W/H,0.1,1000);
-  threeCamera.position.set(0,8,18);threeCamera.lookAt(0,0,0);
-  threeRenderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
-  threeRenderer.setSize(W,H);
-  threeRenderer.setClearColor(0x000000,0);
-  threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
-
-  threeScene.add(new THREE.GridHelper(28,20,0x00FFB8,0x0D2020));
-  threeScene.add(Object.assign(new THREE.AmbientLight(0x003322,.6)));
-  var pl=new THREE.PointLight(0x00FFB8,1.2,40);pl.position.set(0,10,0);threeScene.add(pl);
-  var pl2=new THREE.PointLight(0xFF3CAC,.8,30);pl2.position.set(-10,5,-5);threeScene.add(pl2);
-
-  buildMineGraph();
-
-  /* ResizeObserver */
-  new ResizeObserver(()=>{
-    if(!threeRenderer)return;
-    var nW=wrap.clientWidth;var nH=wrap.clientHeight;
-    threeRenderer.setSize(nW,nH);
-    threeCamera.aspect=nW/nH;threeCamera.updateProjectionMatrix();
-  }).observe(wrap);
-
-  /* Raycaster hover */
-  var raycaster=new THREE.Raycaster();var mouse=new THREE.Vector2();
-  var overlay=document.getElementById("mineOverlay");
-  canvas.addEventListener("mousemove",e=>{
-    var rect=canvas.getBoundingClientRect();
-    mouse.x=((e.clientX-rect.left)/rect.width)*2-1;
-    mouse.y=-((e.clientY-rect.top)/rect.height)*2+1;
-    raycaster.setFromCamera(mouse,threeCamera);
-    var hits=raycaster.intersectObjects(mineNodes);
-    if(hits.length){
-      var obj=hits[0].object;
-      overlay.style.display="block";
-      var md=mineData[obj.userData.id]||{};
-      document.getElementById("mio-title").textContent=md.name||`Mine #${obj.userData.id}`;
-      document.getElementById("mio-res").textContent=md.tons!=null?md.tons.toLocaleString()+" t":"--";
-      document.getElementById("mio-name").textContent=md.name||"(unnamed)";
-    }else{overlay.style.display="none";}
-  });
-  canvas.addEventListener("mouseleave",()=>{overlay.style.display="none";});
-
-  animate3D();
-}
-
-function buildMineGraph(){
-  if(!threeScene)return;
-  /* remove old mine/miner meshes */
-  [...mineNodes,...minerSatellites].forEach(m=>{threeScene.remove(m);m.geometry&&m.geometry.dispose();m.material&&m.material.dispose();});
-  mineNodes=[];minerSatellites=[];
-
-  /* use real data if available, else default 3 placeholder mines */
-  var mines=mineData.length>0?mineData:[
-    {id:0,name:"Mine #1",tons:0},{id:1,name:"Mine #2",tons:0},{id:2,name:"Mine #3",tons:0}
-  ];
-  var n=mines.length;
-  var radius=n===1?0:n===2?4:5;
-  var colors=[0x00FFB8,0xFFB830,0x00D4FF,0xFF3CAC,0xA855F7,0xFF6B35];
-  var maxTons=Math.max(...mines.map(m=>m.tons),1);
-
-  var positions=mines.map((_,i)=>{
-    var angle=(i/n)*Math.PI*2-Math.PI/2;
-    return new THREE.Vector3(Math.cos(angle)*radius,0,Math.sin(angle)*radius);
-  });
-
-  mines.forEach((mine,i)=>{
-    var ratio=mine.tons/maxTons;
-    var col=ratio>0.6?0xFFB830:ratio>0.1?0x00FFB8:colors[i%colors.length];
-    var size=0.5+ratio*0.8;
-    var geo=new THREE.SphereGeometry(size,24,24);
-    var mat=new THREE.MeshPhongMaterial({color:col,emissive:col,emissiveIntensity:.6,transparent:true,opacity:.9});
-    var mesh=new THREE.Mesh(geo,mat);
-    mesh.position.copy(positions[i]);
-    mesh.userData={type:"mine",id:i};
-    threeScene.add(mesh);mineNodes.push(mesh);
-
-    /* ring */
-    var rg=new THREE.RingGeometry(size+.15,size+.35,32);
-    var rm=new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:.25,side:THREE.DoubleSide});
-    var ring=new THREE.Mesh(rg,rm);ring.rotation.x=-Math.PI/2;ring.position.copy(positions[i]);ring.position.y=-.01;threeScene.add(ring);
-
-    /* vertical beam */
-    var bg=new THREE.CylinderGeometry(.03,.03,5,6);
-    var bm=new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:.15});
-    var beam=new THREE.Mesh(bg,bm);beam.position.set(positions[i].x,2.5,positions[i].z);threeScene.add(beam);
-
-    /* miner satellites */
-    var satCount=Math.min(2+Math.floor(ratio*2),4);
-    for(var s=0;s<satCount;s++){
-      var sg=new THREE.SphereGeometry(.22,12,12);
-      var sm2=new THREE.MeshPhongMaterial({color:0xFF3CAC,emissive:0xFF3CAC,emissiveIntensity:.7,transparent:true,opacity:.85});
-      var sat=new THREE.Mesh(sg,sm2);
-      sat.userData={mineIdx:i,satIdx:s,totalSats:satCount};
-      threeScene.add(sat);minerSatellites.push(sat);
-      /* line to mine */
-      var lg=new THREE.BufferGeometry().setFromPoints([positions[i],positions[i]]);
-      var lm2=new THREE.LineBasicMaterial({color:0xFF3CAC,transparent:true,opacity:.2});
-      threeScene.add(new THREE.Line(lg,lm2));
+/* ══ WEB AUDIO SYNTHESIZER ══ */
+window.ZUC = window.ZUC || {};
+ZUC.Audio = (function() {
+  var ctx = null;
+  var enabled = true;
+  function getCtx() {
+    if (!ctx) {
+      var AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (AudioCtx) ctx = new AudioCtx();
     }
-  });
-
-  /* connections between mines */
-  positions.forEach((a,i)=>{positions.forEach((b,j)=>{
-    if(j<=i)return;
-    var pts=[a,new THREE.Vector3((a.x+b.x)/2,(a.y+b.y)/2+1.8,(a.z+b.z)/2),b];
-    var curve=new THREE.QuadraticBezierCurve3(...pts);
-    var lg=new THREE.BufferGeometry().setFromPoints(curve.getPoints(30));
-    var lm2=new THREE.LineBasicMaterial({color:0x00D4FF,transparent:true,opacity:.25});
-    threeScene.add(new THREE.Line(lg,lm2));
-  });});
-}
-
-function animate3D(){
-  animFrame=requestAnimationFrame(animate3D);
-  var t=Date.now()*.001;
-  if(threeCamera){
-    threeCamera.position.x=Math.sin(t*.11)*16;
-    threeCamera.position.z=Math.cos(t*.11)*16;
-    threeCamera.lookAt(0,0,0);
+    if (ctx && ctx.state === 'suspended') ctx.resume();
+    return ctx;
   }
-  mineNodes.forEach((node,i)=>{
-    node.scale.setScalar(1+Math.sin(t*2+i*1.2)*.07);
-    node.material.emissiveIntensity=.5+Math.sin(t*1.5+i)*.25;
-  });
-  minerSatellites.forEach(sat=>{
-    var {mineIdx,satIdx,totalSats}=sat.userData;
-    var parent=mineNodes[mineIdx];if(!parent)return;
-    var angle=(satIdx/totalSats)*Math.PI*2+t*(.4+mineIdx*.08);
-    var r=1.8+satIdx*.2;
-    sat.position.set(parent.position.x+Math.cos(angle)*r,0,parent.position.z+Math.sin(angle)*r);
-    sat.scale.setScalar(.9+Math.sin(t*3+satIdx)*.1);
-  });
-  if(threeRenderer&&threeScene&&threeCamera)threeRenderer.render(threeScene,threeCamera);
+  return {
+    toggle: function() { enabled = !enabled; return enabled; },
+    isEnabled: function() { return enabled; },
+    playHover: function() {
+      if (!enabled) return; var c = getCtx(); if (!c) return;
+      var osc = c.createOscillator(), g = c.createGain();
+      osc.type = 'sine'; osc.frequency.setValueAtTime(800, c.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(1200, c.currentTime + 0.04);
+      g.gain.setValueAtTime(0.02, c.currentTime); g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 0.04);
+      osc.connect(g); g.connect(c.destination); osc.start(); osc.stop(c.currentTime + 0.04);
+    },
+    playClick: function() {
+      if (!enabled) return; var c = getCtx(); if (!c) return;
+      var osc = c.createOscillator(), g = c.createGain();
+      osc.type = 'triangle'; osc.frequency.setValueAtTime(1400, c.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(400, c.currentTime + 0.06);
+      g.gain.setValueAtTime(0.05, c.currentTime); g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 0.06);
+      osc.connect(g); g.connect(c.destination); osc.start(); osc.stop(c.currentTime + 0.06);
+    },
+    playScan: function() {
+      if (!enabled) return; var c = getCtx(); if (!c) return;
+      var osc = c.createOscillator(), g = c.createGain();
+      osc.type = 'sawtooth'; osc.frequency.setValueAtTime(300, c.currentTime);
+      osc.frequency.linearRampToValueAtTime(1800, c.currentTime + 0.18);
+      g.gain.setValueAtTime(0.03, c.currentTime); g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 0.18);
+      osc.connect(g); g.connect(c.destination); osc.start(); osc.stop(c.currentTime + 0.18);
+    },
+    playTxSubmit: function() {
+      if (!enabled) return; var c = getCtx(); if (!c) return;
+      [440, 880].forEach(function(freq, i) {
+        var osc = c.createOscillator(), g = c.createGain();
+        osc.type = 'sine'; osc.frequency.setValueAtTime(freq, c.currentTime + i * 0.08);
+        g.gain.setValueAtTime(0.04, c.currentTime + i * 0.08); g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + i * 0.08 + 0.12);
+        osc.connect(g); g.connect(c.destination); osc.start(c.currentTime + i * 0.08); osc.stop(c.currentTime + i * 0.08 + 0.12);
+      });
+    },
+    playConfirm: function() {
+      if (!enabled) return; var c = getCtx(); if (!c) return;
+      [523.25, 659.25, 783.99].forEach(function(freq, i) {
+        var osc = c.createOscillator(), g = c.createGain();
+        osc.type = 'sine'; osc.frequency.setValueAtTime(freq, c.currentTime + i * 0.07);
+        g.gain.setValueAtTime(0.05, c.currentTime + i * 0.07); g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + i * 0.07 + 0.15);
+        osc.connect(g); g.connect(c.destination); osc.start(c.currentTime + i * 0.07); osc.stop(c.currentTime + i * 0.07 + 0.15);
+      });
+    },
+    playAlert: function() {
+      if (!enabled) return; var c = getCtx(); if (!c) return;
+      var osc = c.createOscillator(), g = c.createGain();
+      osc.type = 'square'; osc.frequency.setValueAtTime(300, c.currentTime);
+      osc.frequency.setValueAtTime(150, c.currentTime + 0.1);
+      g.gain.setValueAtTime(0.04, c.currentTime); g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 0.25);
+      osc.connect(g); g.connect(c.destination); osc.start(); osc.stop(c.currentTime + 0.25);
+    }
+  };
+})();
+
+/* ══ HELPERS ══ */
+function log(msg, type="if") {
+  var box = document.getElementById("logScroll");
+  var row = document.createElement("div");
+  row.className = "logrow";
+  var ts = new Date().toTimeString().split(" ")[0];
+  row.innerHTML = `<span class="lt2">[${ts}]</span><span class="lm2 ${type}">${msg}</span>`;
+  box.appendChild(row);
+  box.scrollTop = box.scrollHeight;
 }
 
-/* ══ CONNECT ══ */
-async function connectWallet(){
-  if(!window.ethereum){
+function pulse(id) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  el.classList.remove("updated");
+  void el.offsetWidth;
+  el.classList.add("updated");
+}
+
+function addFeed(icon, title, sub, col, hash) {
+  var body = document.getElementById("feedBody");
+  var item = document.createElement("div");
+  item.className = "feed-item";
+  var time = new Date().toTimeString().split(" ")[0];
+  item.innerHTML = `
+    <div class="fi-icon">${icon}</div>
+    <div class="fi-body">
+      <div class="fi-title" style="color:${col}">${title}</div>
+      <div class="fi-sub">${sub} ${hash ? `<a href="${EXPLORER}${hash}" target="_blank" style="color:var(--neon2)">[tx]</a>` : ''}</div>
+    </div>
+    <div class="fi-time">${time}</div>`;
+  body.insertBefore(item, body.firstChild);
+  if (body.children.length > 30) body.removeChild(body.lastChild);
+}
+
+function lockWrite(lock) {
+  ["addMinerBtn","storeResBtn","setNameBtn","transferBtn"].forEach(id => {
+    var el = document.getElementById(id);
+    if (el) el.disabled = lock;
+  });
+}
+
+function smsg(el, text, cls) {
+  el.innerHTML = `<div class="sm2 ${cls}">${text}</div>`;
+}
+
+function rows(el, kvs) {
+  el.innerHTML = kvs.map(([k, v]) => `<div class="or"><span class="ok2">${k}</span><span class="ov">${v}</span></div>`).join("");
+}
+
+function showHudModal(title, bodyHtml, onConfirm) {
+  document.getElementById("hudModalTitle").textContent = title;
+  document.getElementById("hudModalBody").innerHTML = bodyHtml;
+  document.getElementById("hudModal").classList.add("show");
+  hudConfirmCallback = onConfirm;
+  ZUC.Audio.playAlert();
+}
+
+function hideHudModal() {
+  document.getElementById("hudModal").classList.remove("show");
+  hudConfirmCallback = null;
+}
+
+/* ══ NETWORK & READ-ONLY INGESTION ══ */
+async function initReadOnly() {
+  try {
+    readProvider = new ethers.providers.JsonRpcProvider(RPC_URL);
+    readContract = new ethers.Contract(CONTRACT, ABI, readProvider);
+    var bn = await readProvider.getBlockNumber();
+    document.getElementById("blockNum").textContent = bn.toLocaleString();
+    document.getElementById("nm-block").textContent = bn.toLocaleString();
+    
+    var o = await readContract.owner();
+    document.getElementById("ownerMetric").textContent = o.slice(0, 6) + "…" + o.slice(-4);
+    
+    // Subscribe to live events via readContract
+    readContract.on("MinerAdded", (minerId, name, ore) => {
+      addFeed("⛏", `On-Chain Event: Miner Added #${minerId}`, `${name} (${ore} ore)`, "var(--neon)");
+      ZUC.Audio.playConfirm();
+      loadIntelligence();
+    });
+    readContract.on("ReservesStored", (mineId, tons) => {
+      addFeed("🪨", `On-Chain Event: Reserves Stored #${mineId}`, `${tons} tons stored`, "var(--amb)");
+      ZUC.Audio.playConfirm();
+      loadIntelligence();
+    });
+    readContract.on("MineNameSet", (mineId, name) => {
+      addFeed("🏷", `On-Chain Event: Mine Renamed #${mineId}`, `Name: "${name}"`, "var(--neon2)");
+      ZUC.Audio.playConfirm();
+      loadIntelligence();
+    });
+
+    log("Read-only JSON-RPC provider & event listeners active", "ok");
+    await updateNetwork();
+    await loadIntelligence();
+  } catch (e) {
+    log("Read-only initialization notice: " + e.message, "wn");
+  }
+}
+
+async function checkChain() {
+  if (!provider) return false;
+  try {
+    var net = await provider.getNetwork();
+    var warn = document.getElementById("chainWarn");
+    if (net.chainId !== CHAIN_ID) {
+      warn.classList.add("show");
+      try {
+        await window.ethereum.request({
+          method: "wallet_switchEthereumChain",
+          params: [{ chainId: "0x" + CHAIN_ID.toString(16) }]
+        });
+        warn.classList.remove("show");
+        return true;
+      } catch (e) {
+        log("Network switch failed. Please select XRPL EVM Sidechain Testnet.", "er");
+        return false;
+      }
+    }
+    warn.classList.remove("show");
+    return true;
+  } catch (e) { return false; }
+}
+
+async function updateNetwork() {
+  var activeProv = provider || readProvider;
+  if (!activeProv) return;
+  try {
+    var t0 = Date.now();
+    var [bn, gp] = await Promise.all([activeProv.getBlockNumber(), activeProv.getGasPrice()]);
+    var lat = Date.now() - t0;
+    var gwei = parseFloat(ethers.utils.formatUnits(gp, "gwei")).toFixed(2);
+    document.getElementById("blockNum").textContent = bn.toLocaleString();
+    document.getElementById("gasPrice").textContent = gwei + " gwei";
+    document.getElementById("latency").textContent = lat + " ms";
+    document.getElementById("nm-block").textContent = bn.toLocaleString();
+    document.getElementById("nm-gas").textContent = gwei;
+    document.getElementById("nm-lat").textContent = lat + " ms";
+    pulse("mc-block");
+  } catch (e) {}
+}
+
+/* ══ CONNECT WALLET ══ */
+async function connectWallet() {
+  ZUC.Audio.playClick();
+  if (!window.ethereum) {
     document.getElementById("noMM").classList.add("show");
-    log("MetaMask not found. Install MetaMask to continue.","er");return;
+    log("MetaMask not found. Install MetaMask to write transactions.", "er"); return;
   }
-  var btn=document.getElementById("connectBtn");
-  btn.disabled=true;btn.textContent="Connecting…";
-  cleanupListeners();
-  try{
-    provider=new ethers.providers.Web3Provider(window.ethereum);
-    await provider.send("eth_requestAccounts",[]);
-    signer=provider.getSigner();
-    contract=new ethers.Contract(CONTRACT,ABI,signer);
-    var addr=await signer.getAddress();
-    var net=await provider.getNetwork();
-    document.getElementById("walletAddr").textContent=addr.slice(0,6)+"…"+addr.slice(-4);
-    document.getElementById("nm-chain").textContent=net.chainId;
-    btn.textContent="Connected ✓";btn.classList.add("on");btn.disabled=false;
+  var btn = document.getElementById("connectBtn");
+  btn.disabled = true; btn.textContent = "Connecting…";
+  try {
+    provider = new ethers.providers.Web3Provider(window.ethereum);
+    await provider.send("eth_requestAccounts", []);
+    signer = provider.getSigner();
+    contract = new ethers.Contract(CONTRACT, ABI, signer);
+    var addr = await signer.getAddress();
+    var net = await provider.getNetwork();
+    document.getElementById("walletAddr").textContent = addr.slice(0, 6) + "…" + addr.slice(-4);
+    document.getElementById("nm-chain").textContent = net.chainId;
+    btn.textContent = "Connected ✓"; btn.classList.add("on"); btn.disabled = false;
 
-    /* chain check */
-    var ok=await checkChain();
-    if(ok){
-      document.getElementById("netStatus").textContent="ONLINE";
-      document.getElementById("netStatus").style.color="var(--neon)";
-      document.getElementById("netStatus").style.textShadow="0 0 14px rgba(0,255,184,.7)";
-      document.getElementById("statusPill").textContent="● ONLINE";
-      document.getElementById("statusPill").className="status-pill sp-on";
+    var ok = await checkChain();
+    if (ok) {
+      document.getElementById("netStatus").textContent = "ONLINE";
+      document.getElementById("netStatus").style.color = "var(--neon)";
+      document.getElementById("statusPill").textContent = "● ONLINE";
+      document.getElementById("statusPill").className = "status-pill sp-on";
       pulse("mc-status");
     }
-    log(`Wallet: ${addr}`,"ok");
-    addFeed("🔗","Wallet Connected",`${addr.slice(0,10)}…${addr.slice(-4)}`,"var(--neon)");
-    try{var o=await contract.owner();document.getElementById("ownerMetric").textContent=o.slice(0,6)+"…"+o.slice(-4);pulse("mc-owner");}catch(e){}
+    log(`Wallet: ${addr}`, "ok");
+    ZUC.Audio.playConfirm();
+    addFeed("🔗", "Wallet Connected", `${addr.slice(0, 10)}…${addr.slice(-4)}`, "var(--neon)");
+
+    try { var o = await contract.owner(); document.getElementById("ownerMetric").textContent = o.slice(0, 6) + "…" + o.slice(-4); pulse("mc-owner"); } catch (e) {}
 
     await updateNetwork();
-    netInterval=setInterval(updateNetwork,5000);
-    blockListener=provider.on("block",bn=>{
-      document.getElementById("nm-block").textContent=bn.toLocaleString();
-      document.getElementById("blockNum").textContent=bn.toLocaleString();
-      pulse("mc-block");
-    });
-    log("Network monitor + block listener active","if");
-
-    /* listen for account/chain changes */
-    window.ethereum.removeAllListeners?.("accountsChanged");
-    window.ethereum.removeAllListeners?.("chainChanged");
-    window.ethereum.on("accountsChanged",()=>{log("Account changed — reconnecting…","wn");connectWallet();});
-    window.ethereum.on("chainChanged",()=>{log("Chain changed — reconnecting…","wn");connectWallet();});
-
-    init3DMap();
-  }catch(e){
-    btn.textContent="Initialize";btn.disabled=false;
-    log("Connect failed: "+(e.message||e),"er");
+    netInterval = setInterval(updateNetwork, 5000);
+    window.ethereum.on("accountsChanged", () => { log("Account changed — reconnecting…", "wn"); connectWallet(); });
+    window.ethereum.on("chainChanged", () => { log("Chain changed — reconnecting…", "wn"); connectWallet(); });
+  } catch (e) {
+    btn.textContent = "Initialize Wallet"; btn.disabled = false;
+    log("Connect failed: " + (e.message || e), "er");
   }
 }
 
-/* ══ INTELLIGENCE LOADER ══ */
-async function loadIntelligence(){
-  if(!contract){log("Connect wallet first","wn");return;}
-  var btn=document.getElementById("loadIntelBtn");
-  btn.disabled=true;btn.textContent="Scanning…";
-  var prog=document.getElementById("scanProgress");
-  var bar=document.getElementById("scanBar");
-  var label=document.getElementById("scanLabel");
+/* ══ INTELLIGENCE SCAN ══ */
+async function loadIntelligence() {
+  ZUC.Audio.playScan();
+  var activeContract = contract || readContract;
+  if (!activeContract) return;
+  var btn = document.getElementById("loadIntelBtn");
+  btn.disabled = true; btn.textContent = "Scanning…";
+  var prog = document.getElementById("scanProgress");
+  var bar = document.getElementById("scanBar");
+  var label = document.getElementById("scanLabel");
   prog.classList.add("show");
-  log("Loading mine intelligence…","if");
-  addFeed("🧠","Intelligence Scan Started","Aggregating on-chain data","var(--pur)");
+  log("Scanning on-chain intelligence…", "if");
 
-  /* hide hints */
-  document.getElementById("hmHint").style.display="none";
-  document.getElementById("lbHint").style.display="none";
+  minerData = [];
+  bar.style.width = "10%"; label.textContent = "Querying miners…";
 
-  /* ── scan miners with cap ── */
-  minerData=[];
-  bar.style.width="5%";label.textContent="Scanning miners…";
-  var i=0;
-  while(i<MAX_MINERS){
-    try{
-      var m=await contract.getMiner(i);
-      var minerId=m.id?m.id.toNumber():(m[0]?m[0].toNumber():i);
-      var minerName=m.name||(m[1])||"";
-      var minerOre=m.oreMined?m.oreMined.toNumber():(m[2]?m[2].toNumber():0);
-      // skip completely empty slots but don't stop — some contracts have gaps
-      if(minerName||minerOre>0){
-        minerData.push({id:minerId,name:minerName,ore:minerOre});
+  // Check minerCount first if supported
+  var count = 0;
+  try {
+    var c = await activeContract.minerCount();
+    count = c.toNumber();
+  } catch (e) {}
+
+  var i = 0;
+  var maxScan = count > 0 ? count : MAX_MINERS;
+  while (i < maxScan) {
+    try {
+      var m = await activeContract.getMiner(i);
+      var minerId = m.id ? m.id.toNumber() : (m[0] ? m[0].toNumber() : i);
+      var minerName = m.name || (m[1]) || "";
+      var minerOre = m.oreMined ? m.oreMined.toNumber() : (m[2] ? m[2].toNumber() : 0);
+      if (minerName || minerOre > 0) {
+        minerData.push({ id: minerId, name: minerName, ore: minerOre });
       }
       i++;
-      var pct=5+Math.min((i/MAX_MINERS)*40,40);
-      bar.style.width=pct+"%";
-      label.textContent="Scanning miners… ("+minerData.length+" found)";
-    }catch(e){
-      // panic code 0x32 = array out of bounds = no more miners
-      // CALL_EXCEPTION on any index = end of array
-      // break on ANY error since contracts panic past end
+      var pct = 10 + Math.min((i / maxScan) * 45, 45);
+      bar.style.width = pct + "%";
+    } catch (e) {
       break;
     }
   }
 
-  /* ── scan mines in parallel batches ── */
-  label.textContent="Scanning mines…";bar.style.width="50%";
-  mineData=[];
-  var minePromises=Array.from({length:MAX_MINES},(_,j)=>
-    contract.getMineInfo(j).then(info=>{
-      if(info.tons.toNumber()>0||info.name)
-        return{id:j,name:info.name||`Mine #${j}`,tons:info.tons.toNumber()};
+  /* scan mines */
+  label.textContent = "Querying mine reserves…"; bar.style.width = "60%";
+  mineData = [];
+  var minePromises = Array.from({ length: MAX_MINES }, (_, j) =>
+    activeContract.getMineInfo(j).then(info => {
+      if (info.tons.toNumber() > 0 || info.name)
+        return { id: j, name: info.name || `Mine #${j}`, tons: info.tons.toNumber() };
       return null;
-    }).catch(()=>null)
+    }).catch(() => null)
   );
-  var mineResults=await Promise.all(minePromises);
-  mineData=mineResults.filter(Boolean);
-  bar.style.width="80%";label.textContent="Computing analytics…";
+  var mineResults = await Promise.all(minePromises);
+  mineData = mineResults.filter(Boolean);
+  bar.style.width = "85%"; label.textContent = "Computing analytics…";
 
-  /* ── analytics ── */
-  var totalOre=minerData.reduce((a,m)=>a+m.ore,0);
-  var avgOre=minerData.length?Math.round(totalOre/minerData.length):0;
-  var topMine=mineData.length?mineData.reduce((a,b)=>a.tons>b.tons?a:b):null;
+  /* analytics */
+  var totalOre = minerData.reduce((a, m) => a + m.ore, 0);
+  var avgOre = minerData.length ? Math.round(totalOre / minerData.length) : 0;
+  var topMine = mineData.length ? mineData.reduce((a, b) => a.tons > b.tons ? a : b) : null;
 
-  document.getElementById("totalOre").textContent=totalOre.toLocaleString();
-  document.getElementById("avgOre").textContent=avgOre.toLocaleString();
-  document.getElementById("topMine").textContent=topMine?"#"+topMine.id:"--";
-  document.getElementById("minerCountIntel").textContent=minerData.length;
-  document.getElementById("minerCountTop").textContent=minerData.length;
+  document.getElementById("totalOre").textContent = totalOre.toLocaleString();
+  document.getElementById("avgOre").textContent = avgOre.toLocaleString();
+  document.getElementById("topMine").textContent = topMine ? "#" + topMine.id : "--";
+  document.getElementById("minerCountIntel").textContent = minerData.length;
+  document.getElementById("minerCountTop").textContent = minerData.length;
   pulse("mc-miners");
 
-  /* ── leaderboard ── */
-  var lb=document.getElementById("leaderboard");
-  if(!minerData.length){lb.innerHTML='<div class="hm-empty">No miners found on-chain</div>';}
-  else{
-    var sorted=[...minerData].sort((a,b)=>b.ore-a.ore);
-    var maxOre=sorted[0]?.ore||1;
-    lb.innerHTML=sorted.slice(0,8).map((m,idx)=>{
-      var rc=["r1","r2","r3"][idx]||"rn";
-      var rl=["#1","#2","#3"][idx]||"#"+(idx+1);
-      var bw=Math.round((m.ore/maxOre)*100);
-      return `<div class="lb-row"><div class="lb-rank ${rc}">${rl}</div><div class="lb-name">${m.name||"Unknown"}</div><div class="lb-bwrap"><div class="lb-bar" style="width:${bw}%"></div></div><div class="lb-ore">${m.ore.toLocaleString()} t</div></div>`;
+  /* leaderboard */
+  var lb = document.getElementById("leaderboard");
+  if (!minerData.length) { lb.innerHTML = '<div class="hm-empty">No miners found on-chain</div>'; }
+  else {
+    var sorted = [...minerData].sort((a, b) => b.ore - a.ore);
+    var maxOre = sorted[0]?.ore || 1;
+    lb.innerHTML = sorted.slice(0, 8).map((m, idx) => {
+      var rc = ["r1", "r2", "r3"][idx] || "rn";
+      var rl = ["#1", "#2", "#3"][idx] || "#" + (idx + 1);
+      var bw = Math.round((m.ore / maxOre) * 100);
+      return `<div class="lb-row"><div class="lb-rank ${rc}">${rl}</div><div class="lb-name">${m.name || "Unknown"}</div><div class="lb-bwrap"><div class="lb-bar" style="width:${bw}%"></div></div><div class="lb-ore">${m.ore.toLocaleString()} t</div></div>`;
     }).join("");
   }
 
-  /* ── heatmap ── */
-  var hm=document.getElementById("heatmap");
-  var hexCols=["#00FFB8","#00D4FF","#FFB830","#FF3CAC","#A855F7"];
-  if(!mineData.length){hm.innerHTML='<div class="hm-empty">No mine reserves found</div>';}
-  else{
-    var maxR=Math.max(...mineData.map(r=>r.tons),1);
-    hm.innerHTML=mineData.map((r,i)=>{
-      var w=Math.max(Math.round((r.tons/maxR)*100),2);
-      var hc=hexCols[i%hexCols.length];
-      return `<div class="hm-row"><div class="hm-lbl">${(r.name||"Mine #"+r.id).slice(0,10)}</div><div class="hm-wrap"><div class="hm-bar" style="width:${w}%;background:${hc};box-shadow:0 0 8px ${hc}"></div></div><div class="hm-val">${r.tons.toLocaleString()}</div></div>`;
+  /* heatmap */
+  var hm = document.getElementById("heatmap");
+  var hexCols = ["#00FFB8", "#00D4FF", "#FFB830", "#FF3CAC", "#A855F7"];
+  if (!mineData.length) { hm.innerHTML = '<div class="hm-empty">No mine reserves found</div>'; }
+  else {
+    var maxR = Math.max(...mineData.map(r => r.tons), 1);
+    hm.innerHTML = mineData.map((r, i) => {
+      var w = Math.max(Math.round((r.tons / maxR) * 100), 2);
+      var hc = hexCols[i % hexCols.length];
+      return `<div class="hm-row"><div class="hm-lbl">${(r.name || "Mine #" + r.id).slice(0, 10)}</div><div class="hm-wrap"><div class="hm-bar" style="width:${w}%;background:${hc};box-shadow:0 0 8px ${hc}"></div></div><div class="hm-val">${r.tons.toLocaleString()}</div></div>`;
     }).join("");
   }
 
-  /* ── chart ── */
-  if(reserveChart){reserveChart.destroy();reserveChart=null;}
-  if(mineData.length){
-    reserveChart=new Chart(document.getElementById("reserveChart"),{
-      type:"bar",
-      data:{
-        labels:mineData.map(r=>(r.name||"Mine #"+r.id).slice(0,12)),
-        datasets:[{label:"Reserves",data:mineData.map(r=>r.tons),backgroundColor:hexCols.map(c=>c+"33"),borderColor:hexCols,borderWidth:1,borderRadius:2}]
+  /* chart */
+  if (reserveChart) { reserveChart.destroy(); reserveChart = null; }
+  if (mineData.length) {
+    reserveChart = new Chart(document.getElementById("reserveChart"), {
+      type: "bar",
+      data: {
+        labels: mineData.map(r => (r.name || "Mine #" + r.id).slice(0, 12)),
+        datasets: [{ label: "Reserves", data: mineData.map(r => r.tons), backgroundColor: hexCols.map(c => c + "33"), borderColor: hexCols, borderWidth: 1, borderRadius: 2 }]
       },
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:"rgba(0,255,184,.05)"},ticks:{color:"#3A6055",font:{size:9}}},y:{grid:{color:"rgba(0,255,184,.05)"},ticks:{color:"#3A6055",font:{size:9}}}}}
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { color: "rgba(0,255,184,.05)" }, ticks: { color: "#3A6055", font: { size: 9 } } }, y: { grid: { color: "rgba(0,255,184,.05)" }, ticks: { color: "#3A6055", font: { size: 9 } } } } }
     });
   }
 
-  /* ── rebuild 3D map with real data ── */
   buildMineGraph();
-  bar.style.width="100%";label.textContent=`Complete — ${minerData.length} miners · ${mineData.length} mines`;
-  log(`Intelligence: ${minerData.length} miners · ${mineData.length} mines · ${totalOre.toLocaleString()}t ore`,"ok");
-  addFeed("📊","Intelligence Loaded",`${minerData.length} miners · ${mineData.length} mines · ${totalOre.toLocaleString()}t`,"var(--neon2)");
-  setTimeout(()=>{prog.classList.remove("show");},3000);
-  btn.disabled=false;btn.textContent="▶ Refresh Intelligence";
+  buildGlobeNetwork();
+  bar.style.width = "100%"; label.textContent = `Complete — ${minerData.length} miners · ${mineData.length} mines`;
+  log(`Intelligence scanned: ${minerData.length} miners · ${mineData.length} mines · ${totalOre.toLocaleString()}t ore`, "ok");
+  setTimeout(() => { prog.classList.remove("show"); }, 2000);
+  btn.disabled = false; btn.textContent = "▶ Refresh Intelligence";
 }
 
-/* ══ TX RUNNER ══ */
-function txReset(ids){ids.forEach(id=>{var el=document.getElementById(id);if(el)el.className="tx-step"})}
-function txSetStep(id,s){var el=document.getElementById(id);if(el)el.className="tx-step "+s}
+/* ══ TRANSACTION LIFECYCLE ══ */
+function txReset(ids) { ids.forEach(id => { var el = document.getElementById(id); if (el) el.className = "tx-step" }) }
+function txSetStep(id, s) { var el = document.getElementById(id); if (el) el.className = "tx-step " + s }
 
-async function runTx(opts){
-  if(txInFlight){log("Transaction already in progress","wn");return;}
-  if(!contract){log("Connect wallet first","wn");return;}
+async function runTx(opts) {
+  if (txInFlight) { log("Transaction already in progress", "wn"); return; }
+  if (!contract) { log("Connect wallet first", "wn"); return; }
+  var ok = await checkChain(); if (!ok) return;
 
-  /* chain check before every write */
-  var ok=await checkChain();
-  if(!ok)return;
+  txInFlight = true; lockWrite(true);
+  ZUC.Audio.playTxSubmit();
 
-  txInFlight=true;
-  lockWrite(true);
-
-  var stepsEl=document.getElementById(opts.steps);
-  stepsEl.style.display="flex";
+  var stepsEl = document.getElementById(opts.steps);
+  stepsEl.style.display = "flex";
   txReset(opts.ids);
-  if(opts.gasPreview)document.getElementById(opts.gasPreview).style.display="none";
+  if (opts.gasPreview) document.getElementById(opts.gasPreview).style.display = "none";
 
-  try{
-    /* gas estimate */
-    txSetStep(opts.ids[0],"active");
+  try {
+    txSetStep(opts.ids[0], "active");
     var gasEst;
-    try{
-      gasEst=await opts.estimateFn();
-      txSetStep(opts.ids[0],"done");
-      if(opts.gasPreview&&gasEst){
-        var gp=await provider.getGasPrice();
-        var costWei=gp.mul(gasEst);
-        var costXrp=parseFloat(ethers.utils.formatEther(costWei)).toFixed(8);
-        document.getElementById(opts.gasEst).textContent=gasEst.toNumber().toLocaleString();
-        document.getElementById(opts.gasCost).textContent=costXrp+" XRP";
-        document.getElementById(opts.gasPreview).style.display="block";
+    try {
+      gasEst = await opts.estimateFn();
+      txSetStep(opts.ids[0], "done");
+      if (opts.gasPreview && gasEst) {
+        var gp = await provider.getGasPrice();
+        var costWei = gp.mul(gasEst);
+        var costXrp = parseFloat(ethers.utils.formatEther(costWei)).toFixed(8);
+        document.getElementById(opts.gasEst).textContent = gasEst.toNumber().toLocaleString();
+        document.getElementById(opts.gasCost).textContent = costXrp + " XRP";
+        document.getElementById(opts.gasPreview).style.display = "block";
       }
-    }catch(e){txSetStep(opts.ids[0],"done")}
+    } catch (e) { txSetStep(opts.ids[0], "done") }
 
-    /* broadcast */
-    txSetStep(opts.ids[1],"active");
-    var tx=await opts.txFn();
-    txSetStep(opts.ids[1],"done");
-    log(`TX: ${tx.hash.slice(0,14)}… · <a href="${EXPLORER}${tx.hash}" target="_blank">View ↗</a>`,"if");
-    addFeed("📡","Transaction Broadcast",tx.hash.slice(0,16)+"…","var(--pur)",tx.hash);
+    txSetStep(opts.ids[1], "active");
+    var tx = await opts.txFn();
+    txSetStep(opts.ids[1], "done");
+    log(`TX Broadcast: ${tx.hash.slice(0, 14)}… · <a href="${EXPLORER}${tx.hash}" target="_blank">View ↗</a>`, "if");
+    addFeed("📡", "Transaction Broadcast", tx.hash.slice(0, 16) + "…", "var(--pur)", tx.hash);
 
-    /* wait */
-    txSetStep(opts.ids[2],"active");
+    txSetStep(opts.ids[2], "active");
     await tx.wait();
-    txSetStep(opts.ids[2],"done");
-    txSetStep(opts.ids[3],"done");
-    addFeed(opts.icon,opts.title,opts.sub,opts.col,tx.hash);
-    log(`Confirmed: ${opts.title}`,"ok");
-    if(opts.onSuccess)opts.onSuccess(tx);
-  }catch(e){
-    opts.ids.forEach(id=>{var el=document.getElementById(id);if(el&&el.classList.contains("active"))txSetStep(id,"fail");});
-    log("TX failed: "+(e.reason||e.message),"er");
-    addFeed("❌","Transaction Failed",(e.reason||e.message||"").slice(0,60),"var(--red)");
-  }finally{
-    txInFlight=false;
-    lockWrite(false);
+    txSetStep(opts.ids[2], "done");
+    txSetStep(opts.ids[3], "done");
+    ZUC.Audio.playConfirm();
+    addFeed(opts.icon, opts.title, opts.sub, opts.col, tx.hash);
+    log(`Confirmed: ${opts.title}`, "ok");
+    if (opts.onSuccess) opts.onSuccess(tx);
+  } catch (e) {
+    ZUC.Audio.playAlert();
+    opts.ids.forEach(id => { var el = document.getElementById(id); if (el && el.classList.contains("active")) txSetStep(id, "fail"); });
+    log("TX failed: " + (e.reason || e.message), "er");
+    addFeed("❌", "Transaction Failed", (e.reason || e.message || "").slice(0, 60), "var(--red)");
+  } finally {
+    txInFlight = false; lockWrite(false);
   }
 }
 
 /* ══ READ FUNCTIONS ══ */
-async function getMineInfo(){
-  var out=document.getElementById("mineInfoOut"),id=document.getElementById("mineInfoId").value;
-  if(id===""){log("Mine ID required","wn");return;}
-  try{smsg(out,"Querying…","pn");var d=await contract.getMineInfo(id);rows(out,[["Mine ID","#"+id],["Name",d.name||"(unnamed)"],["Reserves",d.tons.toString()+" tons"]]);log(`Mine #${id}: "${d.name}" — ${d.tons} tons`,"ok");}
-  catch(e){smsg(out,"Query failed","er");log("getMineInfo: "+(e.reason||e.message),"er")}
+async function getMineInfo() {
+  ZUC.Audio.playClick();
+  var activeC = contract || readContract;
+  var out = document.getElementById("mineInfoOut"), id = document.getElementById("mineInfoId").value;
+  if (id === "") { log("Mine ID required", "wn"); return; }
+  try {
+    smsg(out, "Querying…", "pn"); var d = await activeC.getMineInfo(id);
+    rows(out, [["Mine ID", "#" + id], ["Name", d.name || "(unnamed)"], ["Reserves", d.tons.toString() + " tons"]]);
+    log(`Mine #${id}: "${d.name}" — ${d.tons} tons`, "ok");
+  } catch (e) { smsg(out, "Query failed", "er"); log("getMineInfo: " + (e.reason || e.message), "er") }
 }
-async function getMiner(){
-  var out=document.getElementById("getMinerOut"),id=document.getElementById("getMinerId").value;
-  if(id===""){log("Miner ID required","wn");return;}
-  try{smsg(out,"Querying…","pn");var d=await contract.getMiner(id);
-  var dId=d.id?d.id.toString():(d[0]?d[0].toString():id);
-  var dName=d.name||(d[1])||"(unnamed)";
-  var dOre=d.oreMined?d.oreMined.toString():(d[2]?d[2].toString():"0");
-  rows(out,[["ID",dId],["Name",dName],["Ore",dOre+" units"]]);log("Miner #"+id+": \""+dName+"\"","ok");}
-  catch(e){smsg(out,"Query failed","er");log("getMiner: "+(e.reason||e.message),"er")}
+
+async function getMiner() {
+  ZUC.Audio.playClick();
+  var activeC = contract || readContract;
+  var out = document.getElementById("getMinerOut"), id = document.getElementById("getMinerId").value;
+  if (id === "") { log("Miner ID required", "wn"); return; }
+  try {
+    smsg(out, "Querying…", "pn"); var d = await activeC.getMiner(id);
+    var dId = d.id ? d.id.toString() : (d[0] ? d[0].toString() : id);
+    var dName = d.name || (d[1]) || "(unnamed)";
+    var dOre = d.oreMined ? d.oreMined.toString() : (d[2] ? d[2].toString() : "0");
+    rows(out, [["ID", dId], ["Name", dName], ["Ore", dOre + " units"]]);
+    log("Miner #" + id + ": \"" + dName + "\"", "ok");
+  } catch (e) { smsg(out, "Query failed", "er"); log("getMiner: " + (e.reason || e.message), "er") }
 }
-async function getReserves(){
-  var out=document.getElementById("reservesOut"),id=document.getElementById("reserveId").value;
-  if(id===""){log("Mine ID required","wn");return;}
-  try{smsg(out,"Querying…","pn");var tons=await contract.getReserves(id);rows(out,[["Mine","#"+id],["Reserves",tons.toString()+" tons"]]);log(`Mine #${id}: ${tons} tons`,"ok");}
-  catch(e){smsg(out,"Query failed","er");log("getReserves: "+(e.reason||e.message),"er")}
+
+async function getReserves() {
+  ZUC.Audio.playClick();
+  var activeC = contract || readContract;
+  var out = document.getElementById("reservesOut"), id = document.getElementById("reserveId").value;
+  if (id === "") { log("Mine ID required", "wn"); return; }
+  try {
+    smsg(out, "Querying…", "pn"); var tons = await activeC.getReserves(id);
+    rows(out, [["Mine", "#" + id], ["Reserves", tons.toString() + " tons"]]);
+    log(`Mine #${id}: ${tons} tons`, "ok");
+  } catch (e) { smsg(out, "Query failed", "er"); log("getReserves: " + (e.reason || e.message), "er") }
 }
 
 /* ══ WRITE FUNCTIONS ══ */
-async function addMiner(){
-  var name=document.getElementById("addMinerName").value.trim();
-  var ore=document.getElementById("addMinerOre").value;
-  if(!name||ore===""){log("Name and ore amount required","wn");return;}
+async function addMiner() {
+  var name = document.getElementById("addMinerName").value.trim();
+  var ore = document.getElementById("addMinerOre").value;
+  if (!name || ore === "") { log("Name and ore amount required", "wn"); return; }
   await runTx({
-    steps:"addTxSteps",ids:["addS1","addS2","addS3","addS4"],
-    gasPreview:"addGasPreview",gasEst:"addGasEst",gasCost:"addGasCost",
-    estimateFn:()=>contract.estimateGas.addMiner(name,ore),
-    txFn:()=>contract.addMiner(name,ore),
-    icon:"⛏",title:`Miner Added — ${name}`,sub:`${parseInt(ore).toLocaleString()} ore units`,col:"var(--neon)",
-    onSuccess:()=>{document.getElementById("addMinerName").value="";document.getElementById("addMinerOre").value="";}
-  });
-}
-async function storeReserves(){
-  var id=document.getElementById("storeResId").value;
-  var tons=document.getElementById("storeResTons").value;
-  if(id===""||tons===""){log("Mine ID and tons required","wn");return;}
-  await runTx({
-    steps:"resTxSteps",ids:["resS1","resS2","resS3","resS4"],
-    gasPreview:"resGasPreview",gasEst:"resGasEst",gasCost:"resGasCost",
-    estimateFn:()=>contract.estimateGas.storeReserves(id,tons),
-    txFn:()=>contract.storeReserves(id,tons),
-    icon:"🪨",title:`Reserves Updated — Mine #${id}`,sub:`${parseInt(tons).toLocaleString()} tons`,col:"var(--amb)",
-    onSuccess:null
-  });
-}
-async function setMineName(){
-  var id=document.getElementById("setNameId").value;
-  var name=document.getElementById("setNameVal").value.trim();
-  if(id===""||!name){log("Mine ID and name required","wn");return;}
-  await runTx({
-    steps:"nameTxSteps",ids:["nameS1","nameS2","nameS3","nameS4"],
-    gasPreview:"nameGasPreview",gasEst:"nameGasEst",gasCost:"nameGasCost",
-    estimateFn:()=>contract.estimateGas.setMineName(id,name),
-    txFn:()=>contract.setMineName(id,name),
-    icon:"🏷",title:`Mine Renamed — Mine #${id}`,sub:`"${name}"`,col:"var(--neon2)",
-    onSuccess:()=>{document.getElementById("setNameId").value="";document.getElementById("setNameVal").value="";}
-  });
-}
-async function transferOwnership(){
-  var addr=document.getElementById("newOwnerAddr").value.trim();
-  if(!addr.startsWith("0x")||addr.length!==42){log("Valid 0x address required","wn");return;}
-  if(!confirm(`⚠️ Transfer ownership to\n${addr}\n\nThis is IRREVERSIBLE. Confirm?`))return;
-  addFeed("👑","Ownership Transfer Pending",addr.slice(0,10)+"…","var(--red)");
-  await runTx({
-    steps:"xferTxSteps",ids:["xferS1","xferS2","xferS3","xferS4"],
-    gasPreview:"xferGasPreview",gasEst:"xferGasEst",gasCost:"xferGasCost",
-    estimateFn:()=>contract.estimateGas.transferOwnership(addr),
-    txFn:()=>contract.transferOwnership(addr),
-    icon:"👑",title:"Ownership Transferred",sub:`To: ${addr.slice(0,12)}…`,col:"var(--red)",
-    onSuccess:()=>{document.getElementById("ownerMetric").textContent=addr.slice(0,6)+"…"+addr.slice(-4);pulse("mc-owner");document.getElementById("newOwnerAddr").value="";}
+    steps: "addTxSteps", ids: ["addS1", "addS2", "addS3", "addS4"],
+    gasPreview: "addGasPreview", gasEst: "addGasEst", gasCost: "addGasCost",
+    estimateFn: () => contract.estimateGas.addMiner(name, ore),
+    txFn: () => contract.addMiner(name, ore),
+    icon: "⛏", title: `Miner Added — ${name}`, sub: `${parseInt(ore).toLocaleString()} ore units`, col: "var(--neon)",
+    onSuccess: () => { document.getElementById("addMinerName").value = ""; document.getElementById("addMinerOre").value = ""; }
   });
 }
 
-/* ══════════════════════════════════════
-   NETWORK GLOBE (Three.js)
-══════════════════════════════════════ */
-var globeRenderer=null,globeScene=null,globeCamera=null,globeAnimFrame=null;
-var globeRotating=true,globePulsing=true,globeWireframe=false;
-var globeNodes=[],globeEdges=[];
-var globeRaycaster=new THREE.Raycaster(),globeMouse=new THREE.Vector2();
-var globeTxPulses=[];
-// drag state
-var globeDragging=false,globeLastMouse={x:0,y:0},globeRotY=0,globeRotX=0;
+async function storeReserves() {
+  var id = document.getElementById("storeResId").value;
+  var tons = document.getElementById("storeResTons").value;
+  if (id === "" || tons === "") { log("Mine ID and tons required", "wn"); return; }
+  await runTx({
+    steps: "resTxSteps", ids: ["resS1", "resS2", "resS3", "resS4"],
+    gasPreview: "resGasPreview", gasEst: "resGasEst", gasCost: "resGasCost",
+    estimateFn: () => contract.estimateGas.storeReserves(id, tons),
+    txFn: () => contract.storeReserves(id, tons),
+    icon: "🪨", title: `Reserves Updated — Mine #${id}`, sub: `${parseInt(tons).toLocaleString()} tons`, col: "var(--amb)",
+    onSuccess: null
+  });
+}
 
-var GLOBE_R=6.5;
-var NODE_COLORS={mine:0x00FFB8,miner:0xFF3CAC,contract:0xFFB830,tx:0xA855F7};
+async function setMineName() {
+  var id = document.getElementById("setNameId").value;
+  var name = document.getElementById("setNameVal").value.trim();
+  if (id === "" || !name) { log("Mine ID and name required", "wn"); return; }
+  await runTx({
+    steps: "nameTxSteps", ids: ["nameS1", "nameS2", "nameS3", "nameS4"],
+    gasPreview: "nameGasPreview", gasEst: "nameGasEst", gasCost: "nameGasCost",
+    estimateFn: () => contract.estimateGas.setMineName(id, name),
+    txFn: () => contract.setMineName(id, name),
+    icon: "🏷", title: `Mine Renamed — Mine #${id}`, sub: `"${name}"`, col: "var(--neon2)",
+    onSuccess: () => { document.getElementById("setNameId").value = ""; document.getElementById("setNameVal").value = ""; }
+  });
+}
 
-/* lat/lon → 3D point on sphere */
-function latLonToVec3(lat,lon,r){
-  var phi=(90-lat)*Math.PI/180;
-  var theta=(lon+180)*Math.PI/180;
-  return new THREE.Vector3(
-    -r*Math.sin(phi)*Math.cos(theta),
-    r*Math.cos(phi),
-    r*Math.sin(phi)*Math.sin(theta)
+async function transferOwnership() {
+  var addr = document.getElementById("newOwnerAddr").value.trim();
+  if (!addr.startsWith("0x") || addr.length !== 42) { log("Valid 0x address required", "wn"); return; }
+  
+  showHudModal(
+    "⚠️ CONFIRM OWNERSHIP TRANSFER",
+    `<p>You are about to transfer protocol ownership to address:</p>
+     <div style="font-family:'Orbitron',monospace;font-size:11px;color:var(--neon3);margin:10px 0;word-break:break-all;background:rgba(0,0,0,.5);padding:8px;border:1px solid rgba(255,45,85,.3)">${addr}</div>
+     <p style="color:var(--amb);font-size:11px">⚠️ THIS ACTION IS IRREVERSIBLE AND REVOKES ALL ADMIN PRIVILEGES FROM YOUR WALLET.</p>`,
+    async () => {
+      hideHudModal();
+      addFeed("👑", "Ownership Transfer Pending", addr.slice(0, 10) + "…", "var(--red)");
+      await runTx({
+        steps: "xferTxSteps", ids: ["xferS1", "xferS2", "xferS3", "xferS4"],
+        gasPreview: "xferGasPreview", gasEst: "xferGasEst", gasCost: "xferGasCost",
+        estimateFn: () => contract.estimateGas.transferOwnership(addr),
+        txFn: () => contract.transferOwnership(addr),
+        icon: "👑", title: "Ownership Transferred", sub: `To: ${addr.slice(0, 12)}…`, col: "var(--red)",
+        onSuccess: () => { document.getElementById("ownerMetric").textContent = addr.slice(0, 6) + "…" + addr.slice(-4); pulse("mc-owner"); document.getElementById("newOwnerAddr").value = ""; }
+      });
+    }
   );
 }
 
-function initGlobe(){
-  if(globeRenderer)cleanupGlobe();
-  var canvas=document.getElementById("globeCanvas");
-  var outer=document.getElementById("globeOuter");
-  var W=outer.clientWidth,H=outer.clientHeight;
+/* ══ 3D MINE MAP (Three.js) ══ */
+var threeScene, threeCamera, threeRenderer, animFrame;
+var mineNodes = [], minerSatellites = [];
+var is3DVisible = true;
 
-  globeScene=new THREE.Scene();
-  globeCamera=new THREE.PerspectiveCamera(45,W/H,.1,200);
-  globeCamera.position.set(0,0,22);
-  globeCamera.lookAt(0,0,0);
+function cleanup3D() {
+  if (animFrame) { cancelAnimationFrame(animFrame); animFrame = null; }
+  if (threeRenderer) { threeRenderer.dispose(); threeRenderer = null; }
+  threeScene = null; threeCamera = null;
+  mineNodes = []; minerSatellites = [];
+}
 
-  globeRenderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
-  globeRenderer.setSize(W,H);
-  globeRenderer.setClearColor(0x000000,0);
-  globeRenderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+function init3DMap() {
+  cleanup3D();
+  var canvas = document.getElementById("mineMapCanvas");
+  var wrap = document.getElementById("mineMapWrap");
+  var W = wrap.clientWidth || 600, H = wrap.clientHeight || 320;
+  canvas.width = W; canvas.height = H;
 
-  /* ── SPHERE SHELL ── */
-  var shellGeo=new THREE.SphereGeometry(GLOBE_R,.0,60,60);
-  var shellMat=new THREE.MeshPhongMaterial({
-    color:0x001a2e,emissive:0x001a2e,
-    transparent:true,opacity:.18,
-    wireframe:false,side:THREE.FrontSide,
+  threeScene = new THREE.Scene();
+  threeCamera = new THREE.PerspectiveCamera(55, W / H, 0.1, 1000);
+  threeCamera.position.set(0, 8, 18); threeCamera.lookAt(0, 0, 0);
+  threeRenderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  threeRenderer.setSize(W, H);
+  threeRenderer.setClearColor(0x000000, 0);
+  threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  threeScene.add(new THREE.GridHelper(28, 20, 0x00FFB8, 0x0D2020));
+  threeScene.add(Object.assign(new THREE.AmbientLight(0x003322, .6)));
+  var pl = new THREE.PointLight(0x00FFB8, 1.2, 40); pl.position.set(0, 10, 0); threeScene.add(pl);
+  var pl2 = new THREE.PointLight(0xFF3CAC, .8, 30); pl2.position.set(-10, 5, -5); threeScene.add(pl2);
+
+  buildMineGraph();
+
+  new ResizeObserver(() => {
+    if (!threeRenderer) return;
+    var nW = wrap.clientWidth, nH = wrap.clientHeight;
+    threeRenderer.setSize(nW, nH);
+    threeCamera.aspect = nW / nH; threeCamera.updateProjectionMatrix();
+  }).observe(wrap);
+
+  var raycaster = new THREE.Raycaster(); var mouse = new THREE.Vector2();
+  var overlay = document.getElementById("mio-overlay");
+  canvas.addEventListener("mousemove", e => {
+    var rect = canvas.getBoundingClientRect();
+    mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+    mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+    raycaster.setFromCamera(mouse, threeCamera);
+    var hits = raycaster.intersectObjects(mineNodes);
+    if (hits.length) {
+      var obj = hits[0].object;
+      overlay.style.display = "block";
+      var md = mineData[obj.userData.id] || {};
+      document.getElementById("mio-title").textContent = md.name || `Mine #${obj.userData.id}`;
+      document.getElementById("mio-res").textContent = md.tons != null ? md.tons.toLocaleString() + " t" : "--";
+      document.getElementById("mio-name").textContent = md.name || "(unnamed)";
+      ZUC.Audio.playHover();
+    } else { overlay.style.display = "none"; }
   });
-  var shell=new THREE.Mesh(shellGeo,shellMat);
-  shell.userData.isShell=true;
-  globeScene.add(shell);
+  canvas.addEventListener("mouseleave", () => { overlay.style.display = "none"; });
 
-  /* wireframe overlay */
-  var wfGeo=new THREE.SphereGeometry(GLOBE_R+.02,32,32);
-  var wfMat=new THREE.MeshBasicMaterial({color:0x00FFB8,wireframe:true,transparent:true,opacity:.04});
-  var wf=new THREE.Mesh(wfGeo,wfMat);
-  wf.userData.isWireframe=true;
-  globeScene.add(wf);
+  animate3D();
+}
 
-  /* equator ring */
-  var eqGeo=new THREE.TorusGeometry(GLOBE_R+.05,.008,8,120);
-  var eqMat=new THREE.MeshBasicMaterial({color:0x00FFB8,transparent:true,opacity:.2});
-  globeScene.add(new THREE.Mesh(eqGeo,eqMat));
+function buildMineGraph() {
+  if (!threeScene) return;
+  [...mineNodes, ...minerSatellites].forEach(m => { threeScene.remove(m); m.geometry && m.geometry.dispose(); m.material && m.material.dispose(); });
+  mineNodes = []; minerSatellites = [];
 
-  /* prime meridian ring */
-  var pmGeo=new THREE.TorusGeometry(GLOBE_R+.05,.008,8,120);
-  var pmMat=new THREE.MeshBasicMaterial({color:0x00D4FF,transparent:true,opacity:.15});
-  var pm=new THREE.Mesh(pmGeo,pmMat);pm.rotation.y=Math.PI/2;
-  globeScene.add(pm);
+  var mines = mineData.length > 0 ? mineData : [
+    { id: 0, name: "Mine #1", tons: 0 }, { id: 1, name: "Mine #2", tons: 0 }, { id: 2, name: "Mine #3", tons: 0 }
+  ];
+  var n = mines.length;
+  var radius = n === 1 ? 0 : n === 2 ? 4 : 5;
+  var colors = [0x00FFB8, 0xFFB830, 0x00D4FF, 0xFF3CAC, 0xA855F7, 0xFF6B35];
+  var maxTons = Math.max(...mines.map(m => m.tons), 1);
 
-  /* core glow (inner sphere) */
-  var coreGeo=new THREE.SphereGeometry(GLOBE_R*.55,24,24);
-  var coreMat=new THREE.MeshBasicMaterial({color:0x002d1e,transparent:true,opacity:.5});
-  globeScene.add(new THREE.Mesh(coreGeo,coreMat));
+  var positions = mines.map((_, i) => {
+    var angle = (i / n) * Math.PI * 2 - Math.PI / 2;
+    return new THREE.Vector3(Math.cos(angle) * radius, 0, Math.sin(angle) * radius);
+  });
 
-  /* atmosphere halo */
-  var atmGeo=new THREE.SphereGeometry(GLOBE_R+.6,32,32);
-  var atmMat=new THREE.MeshBasicMaterial({color:0x00FFB8,transparent:true,opacity:.04,side:THREE.BackSide});
-  globeScene.add(new THREE.Mesh(atmGeo,atmMat));
+  mines.forEach((mine, i) => {
+    var ratio = mine.tons / maxTons;
+    var col = ratio > 0.6 ? 0xFFB830 : ratio > 0.1 ? 0x00FFB8 : colors[i % colors.length];
+    var size = 0.5 + ratio * 0.8;
+    var geo = new THREE.SphereGeometry(size, 24, 24);
+    var mat = new THREE.MeshPhongMaterial({ color: col, emissive: col, emissiveIntensity: .6, transparent: true, opacity: .9 });
+    var mesh = new THREE.Mesh(geo, mat);
+    mesh.position.copy(positions[i]);
+    mesh.userData = { type: "mine", id: i };
+    threeScene.add(mesh); mineNodes.push(mesh);
 
-  /* lights */
-  globeScene.add(new THREE.AmbientLight(0x002211,.8));
-  var sun=new THREE.DirectionalLight(0x00FFB8,.6);sun.position.set(10,8,10);globeScene.add(sun);
-  var sun2=new THREE.DirectionalLight(0xFF3CAC,.3);sun2.position.set(-10,-5,-8);globeScene.add(sun2);
+    var rg = new THREE.RingGeometry(size + .15, size + .35, 32);
+    var rm = new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: .25, side: THREE.DoubleSide });
+    var ring = new THREE.Mesh(rg, rm); ring.rotation.x = -Math.PI / 2; ring.position.copy(positions[i]); ring.position.y = -.01; threeScene.add(ring);
 
-  /* stars */
-  var starGeo=new THREE.BufferGeometry();
-  var starPos=[];
-  for(var i=0;i<1200;i++){
-    var r=60+Math.random()*80;
-    var theta=Math.random()*Math.PI*2;
-    var phi=Math.acos(2*Math.random()-1);
-    starPos.push(r*Math.sin(phi)*Math.cos(theta),r*Math.cos(phi),r*Math.sin(phi)*Math.sin(theta));
+    var bg = new THREE.CylinderGeometry(.03, .03, 5, 6);
+    var bm = new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: .15 });
+    var beam = new THREE.Mesh(bg, bm); beam.position.set(positions[i].x, 2.5, positions[i].z); threeScene.add(beam);
+
+    var satCount = Math.min(2 + Math.floor(ratio * 2), 4);
+    for (var s = 0; s < satCount; s++) {
+      var sg = new THREE.SphereGeometry(.22, 12, 12);
+      var sm2 = new THREE.MeshPhongMaterial({ color: 0xFF3CAC, emissive: 0xFF3CAC, emissiveIntensity: .7, transparent: true, opacity: .85 });
+      var sat = new THREE.Mesh(sg, sm2);
+      sat.userData = { mineIdx: i, satIdx: s, totalSats: satCount };
+      threeScene.add(sat); minerSatellites.push(sat);
+    }
+  });
+
+  positions.forEach((a, i) => {
+    positions.forEach((b, j) => {
+      if (j <= i) return;
+      var pts = [a, new THREE.Vector3((a.x + b.x) / 2, (a.y + b.y) / 2 + 1.8, (a.z + b.z) / 2), b];
+      var curve = new THREE.QuadraticBezierCurve3(...pts);
+      var lg = new THREE.BufferGeometry().setFromPoints(curve.getPoints(30));
+      var lm2 = new THREE.LineBasicMaterial({ color: 0x00D4FF, transparent: true, opacity: .25 });
+      threeScene.add(new THREE.Line(lg, lm2));
+    });
+  });
+}
+
+function animate3D() {
+  if (!is3DVisible) return;
+  animFrame = requestAnimationFrame(animate3D);
+  var t = Date.now() * .001;
+  if (threeCamera) {
+    threeCamera.position.x = Math.sin(t * .11) * 16;
+    threeCamera.position.z = Math.cos(t * .11) * 16;
+    threeCamera.lookAt(0, 0, 0);
   }
-  starGeo.setAttribute("position",new THREE.Float32BufferAttribute(starPos,3));
-  var starMat=new THREE.PointsMaterial({color:0xffffff,size:.18,transparent:true,opacity:.55});
-  globeScene.add(new THREE.Points(starGeo,starMat));
+  mineNodes.forEach((node, i) => {
+    node.scale.setScalar(1 + Math.sin(t * 2 + i * 1.2) * .07);
+    node.material.emissiveIntensity = .5 + Math.sin(t * 1.5 + i) * .25;
+  });
+  minerSatellites.forEach(sat => {
+    var { mineIdx, satIdx, totalSats } = sat.userData;
+    var parent = mineNodes[mineIdx]; if (!parent) return;
+    var angle = (satIdx / totalSats) * Math.PI * 2 + t * (.4 + mineIdx * .08);
+    var r = 1.8 + satIdx * .2;
+    sat.position.set(parent.position.x + Math.cos(angle) * r, 0, parent.position.z + Math.sin(angle) * r);
+    sat.scale.setScalar(.9 + Math.sin(t * 3 + satIdx) * .1);
+  });
+  if (threeRenderer && threeScene && threeCamera) threeRenderer.render(threeScene, threeCamera);
+}
+
+/* ══ NETWORK GLOBE (Three.js) ══ */
+var globeRenderer = null, globeScene = null, globeCamera = null, globeAnimFrame = null;
+var globeRotating = true, globePulsing = true, globeWireframe = false;
+var globeNodes = [], globeEdges = [], globeTxPulses = [];
+var globeRaycaster = new THREE.Raycaster(), globeMouse = new THREE.Vector2();
+var globeDragging = false, globeLastMouse = { x: 0, y: 0 }, globeRotY = 0, globeRotX = 0;
+var GLOBE_R = 6.5;
+var NODE_COLORS = { mine: 0x00FFB8, miner: 0xFF3CAC, contract: 0xFFB830, tx: 0xA855F7 };
+var isGlobeVisible = true;
+
+function latLonToVec3(lat, lon, r) {
+  var phi = (90 - lat) * Math.PI / 180;
+  var theta = (lon + 180) * Math.PI / 180;
+  return new THREE.Vector3(
+    -r * Math.sin(phi) * Math.cos(theta),
+    r * Math.cos(phi),
+    r * Math.sin(phi) * Math.sin(theta)
+  );
+}
+
+function initGlobe() {
+  if (globeRenderer) cleanupGlobe();
+  var canvas = document.getElementById("globeCanvas");
+  var outer = document.getElementById("globeOuter");
+  var W = outer.clientWidth, H = outer.clientHeight;
+
+  globeScene = new THREE.Scene();
+  globeCamera = new THREE.PerspectiveCamera(45, W / H, .1, 200);
+  globeCamera.position.set(0, 0, 22); globeCamera.lookAt(0, 0, 0);
+
+  globeRenderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  globeRenderer.setSize(W, H);
+  globeRenderer.setClearColor(0x000000, 0);
+  globeRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  var shellGeo = new THREE.SphereGeometry(GLOBE_R, 60, 60);
+  var shellMat = new THREE.MeshPhongMaterial({ color: 0x001a2e, emissive: 0x001a2e, transparent: true, opacity: .18 });
+  var shell = new THREE.Mesh(shellGeo, shellMat); shell.userData.isShell = true; globeScene.add(shell);
+
+  var wfGeo = new THREE.SphereGeometry(GLOBE_R + .02, 32, 32);
+  var wfMat = new THREE.MeshBasicMaterial({ color: 0x00FFB8, wireframe: true, transparent: true, opacity: .04 });
+  var wf = new THREE.Mesh(wfGeo, wfMat); wf.userData.isWireframe = true; globeScene.add(wf);
+
+  var eqGeo = new THREE.TorusGeometry(GLOBE_R + .05, .008, 8, 120);
+  var eqMat = new THREE.MeshBasicMaterial({ color: 0x00FFB8, transparent: true, opacity: .2 });
+  globeScene.add(new THREE.Mesh(eqGeo, eqMat));
+
+  var pmGeo = new THREE.TorusGeometry(GLOBE_R + .05, .008, 8, 120);
+  var pmMat = new THREE.MeshBasicMaterial({ color: 0x00D4FF, transparent: true, opacity: .15 });
+  var pm = new THREE.Mesh(pmGeo, pmMat); pm.rotation.y = Math.PI / 2; globeScene.add(pm);
+
+  var coreGeo = new THREE.SphereGeometry(GLOBE_R * .55, 24, 24);
+  var coreMat = new THREE.MeshBasicMaterial({ color: 0x002d1e, transparent: true, opacity: .5 });
+  globeScene.add(new THREE.Mesh(coreGeo, coreMat));
+
+  var atmGeo = new THREE.SphereGeometry(GLOBE_R + .6, 32, 32);
+  var atmMat = new THREE.MeshBasicMaterial({ color: 0x00FFB8, transparent: true, opacity: .04, side: THREE.BackSide });
+  globeScene.add(new THREE.Mesh(atmGeo, atmMat));
+
+  globeScene.add(new THREE.AmbientLight(0x002211, .8));
+  var sun = new THREE.DirectionalLight(0x00FFB8, .6); sun.position.set(10, 8, 10); globeScene.add(sun);
+  var sun2 = new THREE.DirectionalLight(0xFF3CAC, .3); sun2.position.set(-10, -5, -8); globeScene.add(sun2);
 
   buildGlobeNetwork();
 
-  /* ResizeObserver */
-  new ResizeObserver(()=>{
-    if(!globeRenderer)return;
-    var nW=outer.clientWidth,nH=outer.clientHeight;
-    globeRenderer.setSize(nW,nH);
-    globeCamera.aspect=nW/nH;globeCamera.updateProjectionMatrix();
+  new ResizeObserver(() => {
+    if (!globeRenderer) return;
+    var nW = outer.clientWidth, nH = outer.clientHeight;
+    globeRenderer.setSize(nW, nH);
+    globeCamera.aspect = nW / nH; globeCamera.updateProjectionMatrix();
   }).observe(outer);
 
-  /* mouse events */
-  var tooltip=document.getElementById("globeTooltip");
-  canvas.addEventListener("mousemove",e=>{
-    var rect=canvas.getBoundingClientRect();
-    globeMouse.x=((e.clientX-rect.left)/rect.width)*2-1;
-    globeMouse.y=-((e.clientY-rect.top)/rect.height)*2+1;
-    globeRaycaster.setFromCamera(globeMouse,globeCamera);
-    var hits=globeRaycaster.intersectObjects(globeNodes.map(n=>n.mesh));
-    if(hits.length){
-      var nd=hits[0].object.userData;
-      tooltip.style.display="block";
-      tooltip.style.left=(e.clientX-rect.left+14)+"px";
-      tooltip.style.top=(e.clientY-rect.top-10)+"px";
-      document.getElementById("gt-title").textContent=nd.label||"Node";
-      document.getElementById("gt-type").textContent=nd.type||"--";
-      document.getElementById("gt-id").textContent=nd.id!=null?"#"+nd.id:"--";
-      document.getElementById("gt-val").textContent=nd.value||"--";
-    }else{tooltip.style.display="none";}
-    if(globeDragging){
-      var dx=e.clientX-globeLastMouse.x,dy=e.clientY-globeLastMouse.y;
-      globeRotY+=dx*.005;globeRotX+=dy*.005;
-      globeRotX=Math.max(-Math.PI/2.2,Math.min(Math.PI/2.2,globeRotX));
-      globeLastMouse={x:e.clientX,y:e.clientY};
+  var tooltip = document.getElementById("globeTooltip");
+  canvas.addEventListener("mousemove", e => {
+    var rect = canvas.getBoundingClientRect();
+    globeMouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+    globeMouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+    globeRaycaster.setFromCamera(globeMouse, globeCamera);
+    var hits = globeRaycaster.intersectObjects(globeNodes.map(n => n.mesh));
+    if (hits.length) {
+      var nd = hits[0].object.userData;
+      tooltip.style.display = "block";
+      tooltip.style.left = (e.clientX - rect.left + 14) + "px";
+      tooltip.style.top = (e.clientY - rect.top - 10) + "px";
+      document.getElementById("gt-title").textContent = nd.label || "Node";
+      document.getElementById("gt-type").textContent = nd.type || "--";
+      document.getElementById("gt-id").textContent = nd.id != null ? "#" + nd.id : "--";
+      document.getElementById("gt-val").textContent = nd.value || "--";
+      ZUC.Audio.playHover();
+    } else { tooltip.style.display = "none"; }
+    if (globeDragging) {
+      var dx = e.clientX - globeLastMouse.x, dy = e.clientY - globeLastMouse.y;
+      globeRotY += dx * .005; globeRotX += dy * .005;
+      globeRotX = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 2.2, globeRotX));
+      globeLastMouse = { x: e.clientX, y: e.clientY };
     }
   });
-  canvas.addEventListener("mouseleave",()=>{tooltip.style.display="none";globeDragging=false;});
-  canvas.addEventListener("mousedown",e=>{globeDragging=true;globeLastMouse={x:e.clientX,y:e.clientY};globeRotating=false;document.getElementById("gcRotate").classList.remove("active");});
-  canvas.addEventListener("mouseup",()=>{globeDragging=false;});
+  canvas.addEventListener("mouseleave", () => { tooltip.style.display = "none"; globeDragging = false; });
+  canvas.addEventListener("mousedown", e => { globeDragging = true; globeLastMouse = { x: e.clientX, y: e.clientY }; globeRotating = false; document.getElementById("gcRotate").classList.remove("active"); });
+  canvas.addEventListener("mouseup", () => { globeDragging = false; });
 
-  /* controls */
-  document.getElementById("gcRotate").onclick=function(){globeRotating=!globeRotating;this.classList.toggle("active",globeRotating)};
-  document.getElementById("gcPulse").onclick=function(){globePulsing=!globePulsing;this.classList.toggle("active",globePulsing)};
-  document.getElementById("gcWire").onclick=function(){
-    globeWireframe=!globeWireframe;this.classList.toggle("active",globeWireframe);
-    globeScene.traverse(obj=>{if(obj.userData.isWireframe)obj.material.opacity=globeWireframe?.18:.04;if(obj.userData.isShell)obj.material.opacity=globeWireframe?.06:.18;});
+  document.getElementById("gcRotate").onclick = function () { globeRotating = !globeRotating; this.classList.toggle("active", globeRotating); ZUC.Audio.playClick(); };
+  document.getElementById("gcPulse").onclick = function () { globePulsing = !globePulsing; this.classList.toggle("active", globePulsing); ZUC.Audio.playClick(); };
+  document.getElementById("gcWire").onclick = function () {
+    globeWireframe = !globeWireframe; this.classList.toggle("active", globeWireframe); ZUC.Audio.playClick();
+    globeScene.traverse(obj => { if (obj.userData.isWireframe) obj.material.opacity = globeWireframe ? .18 : .04; if (obj.userData.isShell) obj.material.opacity = globeWireframe ? .06 : .18; });
   };
 
   animateGlobe();
 }
 
-function buildGlobeNetwork(){
-  if(!globeScene)return;
-  /* clear old */
-  globeNodes.forEach(n=>{globeScene.remove(n.mesh);n.mesh.geometry.dispose();n.mesh.material.dispose();});
-  globeEdges.forEach(e=>{globeScene.remove(e);e.geometry.dispose();e.material.dispose();});
-  globeNodes=[];globeEdges=[];globeTxPulses=[];
+function buildGlobeNetwork() {
+  if (!globeScene) return;
+  globeNodes.forEach(n => { globeScene.remove(n.mesh); n.mesh.geometry.dispose(); n.mesh.material.dispose(); });
+  globeEdges.forEach(e => { globeScene.remove(e); e.geometry.dispose(); e.material.dispose(); });
+  globeNodes = []; globeEdges = []; globeTxPulses = [];
 
-  /* decide topology from data or use defaults */
-  var mines=mineData.length>0?mineData:[
-    {id:0,name:"McArthur",tons:1200},{id:1,name:"Cigar Lake",tons:3400},{id:2,name:"Rabbit Lake",tons:800},{id:3,name:"Athabasca",tons:2100}
+  var mines = mineData.length > 0 ? mineData : [
+    { id: 0, name: "McArthur", tons: 1200 }, { id: 1, name: "Cigar Lake", tons: 3400 }, { id: 2, name: "Rabbit Lake", tons: 800 }, { id: 3, name: "Athabasca", tons: 2100 }
   ];
-  var miners=minerData.length>0?minerData:[
-    {id:0,name:"Miner A",ore:440},{id:1,name:"Miner B",ore:290},{id:2,name:"Miner C",ore:620},
-    {id:3,name:"Miner D",ore:180},{id:4,name:"Miner E",ore:350},{id:5,name:"Miner F",ore:510},
+  var miners = minerData.length > 0 ? minerData : [
+    { id: 0, name: "Miner A", ore: 440 }, { id: 1, name: "Miner B", ore: 290 }, { id: 2, name: "Miner C", ore: 620 },
+    { id: 3, name: "Miner D", ore: 180 }, { id: 4, name: "Miner E", ore: 350 }, { id: 5, name: "Miner F", ore: 510 },
   ];
 
-  var totalNodes=mines.length+miners.length+1;
-  document.getElementById("g-mines").textContent=mines.length;
-  document.getElementById("g-miners").textContent=miners.length;
-  document.getElementById("g-ore").textContent=miners.reduce((a,m)=>a+m.ore,0).toLocaleString();
+  document.getElementById("g-mines").textContent = mines.length;
+  document.getElementById("g-miners").textContent = miners.length;
+  document.getElementById("g-ore").textContent = miners.reduce((a, m) => a + m.ore, 0).toLocaleString();
 
-  /* contract hub at pole */
-  var contractPos=latLonToVec3(70,0,GLOBE_R);
-  addGlobeNode(contractPos,"contract","Contract","Hub","0x22AC…bE31");
+  var contractPos = latLonToVec3(70, 0, GLOBE_R);
+  addGlobeNode(contractPos, "contract", "Contract", "Hub", "0x22AC…bE31");
 
-  /* mines spread around upper hemisphere */
-  var minePositions=mines.map((mine,i)=>{
-    var lat=15+Math.random()*35;
-    var lon=-150+i*(300/Math.max(mines.length-1,1));
-    var pos=latLonToVec3(lat,lon,GLOBE_R);
-    var maxT=Math.max(...mines.map(m=>m.tons),1);
-    var r=.28+.28*(mine.tons/maxT);
-    addGlobeNode(pos,"mine","Mine #"+mine.id,mine.name||"Mine #"+mine.id,mine.tons.toLocaleString()+" t",r);
-    /* connect to contract hub */
-    addGlobeEdge(contractPos,pos,0x00FFB8,.35);
+  var minePositions = mines.map((mine, i) => {
+    var lat = 15 + Math.random() * 35;
+    var lon = -150 + i * (300 / Math.max(mines.length - 1, 1));
+    var pos = latLonToVec3(lat, lon, GLOBE_R);
+    var maxT = Math.max(...mines.map(m => m.tons), 1);
+    var r = .28 + .28 * (mine.tons / maxT);
+    addGlobeNode(pos, "mine", "Mine #" + mine.id, mine.name || "Mine #" + mine.id, mine.tons.toLocaleString() + " t", r);
+    addGlobeEdge(contractPos, pos, 0x00FFB8, .35);
     return pos;
   });
 
-  /* miners in lower hemisphere, each tethered to nearest mine */
-  miners.forEach((miner,i)=>{
-    var lat=-10-Math.random()*40;
-    var lon=-160+i*(320/Math.max(miners.length-1,1));
-    var pos=latLonToVec3(lat,lon,GLOBE_R);
-    var maxO=Math.max(...miners.map(m=>m.ore),1);
-    var r=.16+.18*(miner.ore/maxO);
-    addGlobeNode(pos,"miner","Miner #"+miner.id,miner.name||"Miner #"+miner.id,miner.ore.toLocaleString()+" ore",r);
-    /* connect to closest mine */
-    var mineIdx=i%mines.length;
-    addGlobeEdge(minePositions[mineIdx],pos,0xFF3CAC,.25);
+  miners.forEach((miner, i) => {
+    var lat = -10 - Math.random() * 40;
+    var lon = -160 + i * (320 / Math.max(miners.length - 1, 1));
+    var pos = latLonToVec3(lat, lon, GLOBE_R);
+    var maxO = Math.max(...miners.map(m => m.ore), 1);
+    var r = .16 + .18 * (miner.ore / maxO);
+    addGlobeNode(pos, "miner", "Miner #" + miner.id, miner.name || "Miner #" + miner.id, miner.ore.toLocaleString() + " ore", r);
+    var mineIdx = i % mines.length;
+    addGlobeEdge(minePositions[mineIdx], pos, 0xFF3CAC, .25);
   });
 
-  /* mine–mine cross connections */
-  minePositions.forEach((a,i)=>{
-    var b=minePositions[(i+1)%minePositions.length];
-    addGlobeEdge(a,b,0x00D4FF,.2);
+  minePositions.forEach((a, i) => {
+    var b = minePositions[(i + 1) % minePositions.length];
+    addGlobeEdge(a, b, 0x00D4FF, .2);
   });
 
-  document.getElementById("g-conns").textContent=globeEdges.length;
+  document.getElementById("g-conns").textContent = globeEdges.length;
 }
 
-function addGlobeNode(pos,type,label,name,value,radius=.22){
-  var col=NODE_COLORS[type]||0xffffff;
-  var geo=new THREE.SphereGeometry(radius,16,16);
-  var mat=new THREE.MeshPhongMaterial({color:col,emissive:col,emissiveIntensity:.7,transparent:true,opacity:.95});
-  var mesh=new THREE.Mesh(geo,mat);
+function addGlobeNode(pos, type, label, name, value, radius = .22) {
+  var col = NODE_COLORS[type] || 0xffffff;
+  var geo = new THREE.SphereGeometry(radius, 16, 16);
+  var mat = new THREE.MeshPhongMaterial({ color: col, emissive: col, emissiveIntensity: .7, transparent: true, opacity: .95 });
+  var mesh = new THREE.Mesh(geo, mat);
   mesh.position.copy(pos);
-  mesh.userData={type,label,id:globeNodes.length,value,name};
+  mesh.userData = { type, label, id: globeNodes.length, value, name };
   globeScene.add(mesh);
-
-  /* outer ring halo */
-  var rg=new THREE.RingGeometry(radius+.04,radius+.12,24);
-  var rm=new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:.2,side:THREE.DoubleSide});
-  var ring=new THREE.Mesh(rg,rm);
-  ring.lookAt(new THREE.Vector3(0,0,0));
-  ring.position.copy(pos);
-  globeScene.add(ring);
-
-  /* spike from surface */
-  var spGeo=new THREE.CylinderGeometry(.015,.015,radius*1.5,4);
-  var spMat=new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:.4});
-  var spike=new THREE.Mesh(spGeo,spMat);
-  var dir=pos.clone().normalize();
-  spike.position.copy(pos.clone().add(dir.multiplyScalar(radius*.4)));
-  spike.lookAt(pos.clone().multiplyScalar(2));
-  globeScene.add(spike);
-
-  globeNodes.push({mesh,type,pos,col});
+  globeNodes.push({ mesh, type, pos, col });
 }
 
-function addGlobeEdge(a,b,color,opacity){
-  /* arc on sphere surface using slerp points */
-  var points=[];
-  var steps=32;
-  for(var i=0;i<=steps;i++){
-    var t=i/steps;
-    var p=new THREE.Vector3().lerpVectors(a,b,t).normalize().multiplyScalar(GLOBE_R+.06);
+function addGlobeEdge(a, b, color, opacity) {
+  var points = []; var steps = 32;
+  for (var i = 0; i <= steps; i++) {
+    var t = i / steps;
+    var p = new THREE.Vector3().lerpVectors(a, b, t).normalize().multiplyScalar(GLOBE_R + .06);
     points.push(p);
   }
-  var geo=new THREE.BufferGeometry().setFromPoints(points);
-  var mat=new THREE.LineBasicMaterial({color,transparent:true,opacity});
-  var line=new THREE.Line(geo,mat);
+  var geo = new THREE.BufferGeometry().setFromPoints(points);
+  var mat = new THREE.LineBasicMaterial({ color, transparent: true, opacity });
+  var line = new THREE.Line(geo, mat);
   globeScene.add(line);
   globeEdges.push(line);
   return line;
 }
 
-/* spawn a travelling pulse along an edge */
-function spawnTxPulse(){
-  if(!globePulsing||globeNodes.length<2)return;
-  var i=Math.floor(Math.random()*globeNodes.length);
-  var j=Math.floor(Math.random()*globeNodes.length);
-  if(i===j)return;
-  var a=globeNodes[i].pos,b=globeNodes[j].pos;
-  var col=0xA855F7;
-  var geo=new THREE.SphereGeometry(.12,8,8);
-  var mat=new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:.9});
-  var pulse=new THREE.Mesh(geo,mat);
+function spawnTxPulse() {
+  if (!globePulsing || globeNodes.length < 2) return;
+  var i = Math.floor(Math.random() * globeNodes.length);
+  var j = Math.floor(Math.random() * globeNodes.length);
+  if (i === j) return;
+  var a = globeNodes[i].pos, b = globeNodes[j].pos;
+  var geo = new THREE.SphereGeometry(.12, 8, 8);
+  var mat = new THREE.MeshBasicMaterial({ color: 0xA855F7, transparent: true, opacity: .9 });
+  var pulse = new THREE.Mesh(geo, mat);
   globeScene.add(pulse);
-  globeTxPulses.push({mesh:pulse,a,b,t:0,speed:.008+Math.random()*.012,life:1});
+  globeTxPulses.push({ mesh: pulse, a, b, t: 0, speed: .008 + Math.random() * .012, life: 1 });
 }
 
-function animateGlobe(){
-  globeAnimFrame=requestAnimationFrame(animateGlobe);
-  var T=Date.now()*.001;
+function animateGlobe() {
+  if (!isGlobeVisible) return;
+  globeAnimFrame = requestAnimationFrame(animateGlobe);
+  var T = Date.now() * .001;
+  if (globeScene) {
+    if (globeRotating) globeRotY += .003;
+    globeScene.rotation.y = globeRotY;
+    globeScene.rotation.x = globeRotX;
 
-  if(globeScene){
-    /* auto rotate */
-    if(globeRotating)globeRotY+=.003;
-    globeScene.rotation.y=globeRotY;
-    globeScene.rotation.x=globeRotX;
-
-    /* pulse nodes */
-    globeNodes.forEach((nd,i)=>{
-      var s=1+Math.sin(T*1.8+i*.9)*.07;
-      nd.mesh.scale.setScalar(s);
-      nd.mesh.material.emissiveIntensity=.55+Math.sin(T*1.2+i)*.3;
+    globeNodes.forEach((nd, i) => {
+      nd.mesh.scale.setScalar(1 + Math.sin(T * 1.8 + i * .9) * .07);
+      nd.mesh.material.emissiveIntensity = .55 + Math.sin(T * 1.2 + i) * .3;
     });
 
-    /* spawn tx pulses periodically */
-    if(globePulsing&&Math.random()<.018)spawnTxPulse();
+    if (globePulsing && Math.random() < .018) spawnTxPulse();
 
-    /* animate pulses */
-    globeTxPulses=globeTxPulses.filter(p=>{
-      p.t+=p.speed;p.life=1-p.t;
-      if(p.t>=1){globeScene.remove(p.mesh);p.mesh.geometry.dispose();p.mesh.material.dispose();return false;}
-      var pos=new THREE.Vector3().lerpVectors(p.a,p.b,p.t).normalize().multiplyScalar(GLOBE_R+.1);
+    globeTxPulses = globeTxPulses.filter(p => {
+      p.t += p.speed; p.life = 1 - p.t;
+      if (p.t >= 1) { globeScene.remove(p.mesh); p.mesh.geometry.dispose(); p.mesh.material.dispose(); return false; }
+      var pos = new THREE.Vector3().lerpVectors(p.a, p.b, p.t).normalize().multiplyScalar(GLOBE_R + .1);
       p.mesh.position.copy(pos);
-      p.mesh.material.opacity=p.life*1.0;
-      p.mesh.scale.setScalar(.8+Math.sin(p.t*Math.PI)*.6);
+      p.mesh.material.opacity = p.life * 1.0;
       return true;
     });
-
-    /* edge pulse opacity */
-    globeEdges.forEach((e,i)=>{
-      e.material.opacity=e.material.opacity*.98+((.15+Math.sin(T*.8+i*.4)*.1)*.02);
-    });
   }
-
-  if(globeRenderer&&globeScene&&globeCamera)globeRenderer.render(globeScene,globeCamera);
+  if (globeRenderer && globeScene && globeCamera) globeRenderer.render(globeScene, globeCamera);
 }
 
-function cleanupGlobe(){
-  if(globeAnimFrame){cancelAnimationFrame(globeAnimFrame);globeAnimFrame=null;}
-  if(globeRenderer){globeRenderer.dispose();globeRenderer=null;}
-  globeScene=null;globeCamera=null;globeNodes=[];globeEdges=[];globeTxPulses=[];
+function cleanupGlobe() {
+  if (globeAnimFrame) { cancelAnimationFrame(globeAnimFrame); globeAnimFrame = null; }
+  if (globeRenderer) { globeRenderer.dispose(); globeRenderer = null; }
+  globeScene = null; globeCamera = null; globeNodes = []; globeEdges = []; globeTxPulses = [];
 }
 
-/* call buildGlobeNetwork whenever intel loads */
-var _origLoadIntel=loadIntelligence;
-/* we patch after load — see bottom of INIT */
+/* ══ GEOLOGY VIEWER (Three.js) ══ */
+var geoRenderer = null, geoScene = null, geoCamera = null, geoAnimFrame = null;
+var geoControls = { isDragging: false, lastX: 0, lastY: 0, rotX: 0.55, rotY: 0.3, zoom: 1 };
+var geoMode = "wire";
+var geoMeshes = [];
+var geoRay = new THREE.Raycaster(), geoMouse2 = new THREE.Vector2();
+var geoMineMarkers = [];
+var geoScanT = 0;
+var isGeoVisible = true;
 
-/* ══════════════════════════════════════
-   GEOLOGY VIEWER (Three.js)
-══════════════════════════════════════ */
-var geoRenderer=null,geoScene=null,geoCamera=null,geoAnimFrame=null;
-var geoControls={isDragging:false,lastX:0,lastY:0,rotX:0.55,rotY:0.3,zoom:1};
-var geoMode="wire"; // wire | solid | xray
-var geoMeshes=[];
-var geoRay=new THREE.Raycaster(),geoMouse2=new THREE.Vector2();
-var geoMineMarkers=[];
-var geoScanT=0;
-
-var STRATA=[
-  {y:0,    h:18, col:0x1a3a2a, name:"Topsoil / Overburden",   wCol:0x00FFB8, op:.08},
-  {y:-18,  h:22, col:0x0d1f35, name:"Sandstone Formation",     wCol:0x00D4FF, op:.12},
-  {y:-40,  h:20, col:0x1a1228, name:"Shale / Mudstone",        wCol:0xA855F7, op:.10},
-  {y:-60,  h:28, col:0x0a1a10, name:"Granite Basement",        wCol:0x00FFB8, op:.15},
-  {y:-88,  h:18, col:0x251508, name:"Ore-Bearing Breccia",      wCol:0xFFB830, op:.22},
-  {y:-106, h:22, col:0x0a0a18, name:"Crystalline Basement",    wCol:0x4488FF, op:.09},
+var STRATA = [
+  { y: 0, h: 18, col: 0x1a3a2a, name: "Topsoil / Overburden", wCol: 0x00FFB8, op: .08 },
+  { y: -18, h: 22, col: 0x0d1f35, name: "Sandstone Formation", wCol: 0x00D4FF, op: .12 },
+  { y: -40, h: 20, col: 0x1a1228, name: "Shale / Mudstone", wCol: 0xA855F7, op: .10 },
+  { y: -60, h: 28, col: 0x0a1a10, name: "Granite Basement", wCol: 0x00FFB8, op: .15 },
+  { y: -88, h: 18, col: 0x251508, name: "Ore-Bearing Breccia", wCol: 0xFFB830, op: .22 },
 ];
 
-function initGeoViewer(){
-  if(geoRenderer)cleanupGeo();
-  var canvas=document.getElementById("geoCanvas");
-  var outer=document.getElementById("geoOuter");
-  var W=outer.clientWidth||900, H=outer.clientHeight||500;
+function initGeoViewer() {
+  if (geoRenderer) cleanupGeo();
+  var canvas = document.getElementById("geoCanvas");
+  var outer = document.getElementById("geoOuter");
+  var W = outer.clientWidth, H = outer.clientHeight;
 
-  geoScene=new THREE.Scene();
-  geoCamera=new THREE.PerspectiveCamera(42, W/H, 0.1, 2000);
-  geoCamera.position.set(0, 60, 160);
-  geoCamera.lookAt(0, -30, 0);
+  geoScene = new THREE.Scene();
+  geoCamera = new THREE.PerspectiveCamera(50, W / H, .1, 600);
+  geoCamera.position.set(0, 40, 140); geoCamera.lookAt(0, -30, 0);
 
-  geoRenderer=new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
+  geoRenderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
   geoRenderer.setSize(W, H);
   geoRenderer.setClearColor(0x000000, 0);
   geoRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-  /* lights */
-  geoScene.add(new THREE.AmbientLight(0x002233, 1.2));
-  var dl=new THREE.DirectionalLight(0x00D4FF, .7);
-  dl.position.set(60, 80, 60); geoScene.add(dl);
-  var dl2=new THREE.DirectionalLight(0xFFB830, .4);
-  dl2.position.set(-60, -20, -40); geoScene.add(dl2);
+  geoScene.add(new THREE.AmbientLight(0x002211, .7));
+  var dirL = new THREE.DirectionalLight(0x00FFB8, .7); dirL.position.set(20, 60, 40); geoScene.add(dirL);
 
   buildGeoTerrain();
 
-  /* resize observer */
-  new ResizeObserver(()=>{
-    if(!geoRenderer)return;
-    var nW=outer.clientWidth, nH=outer.clientHeight;
+  new ResizeObserver(() => {
+    if (!geoRenderer) return;
+    var nW = outer.clientWidth, nH = outer.clientHeight;
     geoRenderer.setSize(nW, nH);
-    geoCamera.aspect=nW/nH;
-    geoCamera.updateProjectionMatrix();
+    geoCamera.aspect = nW / nH; geoCamera.updateProjectionMatrix();
   }).observe(outer);
 
-  /* mouse events */
-  var tooltip=document.getElementById("geoTooltip");
-  canvas.addEventListener("mousemove", e=>{
-    var rect=canvas.getBoundingClientRect();
-    if(geoControls.isDragging){
-      var dx=e.clientX-geoControls.lastX, dy=e.clientY-geoControls.lastY;
-      geoControls.rotY+=dx*.007;
-      geoControls.rotX+=dy*.007;
-      geoControls.rotX=Math.max(-0.1, Math.min(1.4, geoControls.rotX));
-      geoControls.lastX=e.clientX; geoControls.lastY=e.clientY;
-    }
-    /* hover raycaster */
-    geoMouse2.x=((e.clientX-rect.left)/rect.width)*2-1;
-    geoMouse2.y=-((e.clientY-rect.top)/rect.height)*2+1;
-    geoRay.setFromCamera(geoMouse2, geoCamera);
-    var hits=geoRay.intersectObjects(geoMineMarkers.map(m=>m.mesh));
-    if(hits.length){
-      var d=hits[0].object.userData;
-      tooltip.style.display="block";
-      tooltip.style.left=(e.clientX-rect.left+14)+"px";
-      tooltip.style.top=(e.clientY-rect.top-14)+"px";
-      document.getElementById("gtt-title").textContent=d.name||"Mine";
-      document.getElementById("gtt-depth").textContent=d.depth+"m";
-      document.getElementById("gtt-res").textContent=d.tons.toLocaleString()+" t";
-    } else { tooltip.style.display="none"; }
-  });
-  canvas.addEventListener("mouseleave",()=>{tooltip.style.display="none"; geoControls.isDragging=false;});
-  canvas.addEventListener("mousedown",e=>{geoControls.isDragging=true; geoControls.lastX=e.clientX; geoControls.lastY=e.clientY;});
-  canvas.addEventListener("mouseup",()=>{geoControls.isDragging=false;});
-  canvas.addEventListener("wheel",e=>{
-    e.preventDefault();
-    geoControls.zoom=Math.max(.4, Math.min(2.5, geoControls.zoom+e.deltaY*.001));
-  },{passive:false});
-
-  /* controls */
-  document.getElementById("geoLayer1").onclick=function(){setGeoMode("wire");};
-  document.getElementById("geoLayer2").onclick=function(){setGeoMode("solid");};
-  document.getElementById("geoXray").onclick=function(){setGeoMode("xray");};
-  document.getElementById("geoReset").onclick=function(){
-    geoControls.rotX=0.55; geoControls.rotY=0.3; geoControls.zoom=1;
-  };
+  document.getElementById("geoLayer1").onclick = function () { setGeoMode("wire"); ZUC.Audio.playClick(); };
+  document.getElementById("geoLayer2").onclick = function () { setGeoMode("solid"); ZUC.Audio.playClick(); };
+  document.getElementById("geoLayer3").onclick = function () { setGeoMode("xray"); ZUC.Audio.playClick(); };
 
   animateGeo();
 }
 
-function setGeoMode(mode){
-  geoMode=mode;
-  ["geoLayer1","geoLayer2","geoXray"].forEach(id=>document.getElementById(id).classList.remove("active"));
-  var map={wire:"geoLayer1",solid:"geoLayer2",xray:"geoXray"};
-  document.getElementById(map[mode]).classList.add("active");
-  document.getElementById("geo-mode").textContent={wire:"Wireframe",solid:"Solid",xray:"X-Ray"}[mode];
-  updateGeoMaterials();
+function setGeoMode(m) {
+  geoMode = m;
+  ["geoLayer1", "geoLayer2", "geoLayer3"].forEach((id, i) => {
+    document.getElementById(id).classList.toggle("active", ["wire", "solid", "xray"][i] === m);
+  });
+  document.getElementById("geo-mode").textContent = m.toUpperCase();
 }
 
-function updateGeoMaterials(){
-  geoMeshes.forEach(({solid, wire, xray})=>{
-    if(solid) solid.visible = geoMode==="solid";
-    if(wire)  wire.visible  = geoMode==="wire" || geoMode==="xray";
-    if(xray)  xray.visible  = geoMode==="xray";
-  });
-}
+function buildGeoTerrain() {
+  if (!geoScene) return;
+  geoMeshes.forEach(m => { geoScene.remove(m.solid); geoScene.remove(m.wire); geoScene.remove(m.xray); });
+  geoMineMarkers.forEach(m => geoScene.remove(m.mesh));
+  geoMeshes = []; geoMineMarkers = [];
 
-function buildGeoTerrain(){
-  /* clear */
-  geoMeshes.forEach(g=>{
-    [g.solid,g.wire,g.xray].forEach(m=>{if(m){geoScene.remove(m);m.geometry.dispose();m.material.dispose();}});
-  });
-  geoMineMarkers.forEach(m=>{geoScene.remove(m.mesh);m.mesh.geometry.dispose();m.mesh.material.dispose();});
-  geoMeshes=[];geoMineMarkers=[];
-
-  var W=120, D=80, segs=48, dsegs=32;
-
-  /* ── TERRAIN SURFACE (perlin-like displacement) ── */
-  var surfGeo=new THREE.PlaneGeometry(W, D, segs, dsegs);
-  surfGeo.rotateX(-Math.PI/2);
-  var pos=surfGeo.attributes.position;
-  for(var i=0;i<pos.count;i++){
-    var x=pos.getX(i)/W, z=pos.getZ(i)/D;
-    var h=
-      Math.sin(x*Math.PI*3)*2.8+
-      Math.cos(z*Math.PI*4)*2.2+
-      Math.sin((x+z)*Math.PI*6)*.9+
-      Math.cos((x*2-z)*Math.PI*5)*1.1+
-      Math.sin(x*Math.PI*9)*.4+
-      Math.cos(z*Math.PI*7)*.35;
-    pos.setY(i, h);
-  }
-  pos.needsUpdate=true;
-  surfGeo.computeVertexNormals();
-
-  var surfSolid=new THREE.Mesh(surfGeo, new THREE.MeshPhongMaterial({color:0x0a2a18,emissive:0x001a0c,transparent:true,opacity:.92,side:THREE.DoubleSide}));
-  var surfWire=new THREE.Mesh(surfGeo, new THREE.MeshBasicMaterial({color:0x00FFB8,wireframe:true,transparent:true,opacity:.35}));
-  var surfXray=new THREE.Mesh(surfGeo, new THREE.MeshBasicMaterial({color:0x00FFB8,wireframe:true,transparent:true,opacity:.15}));
-  geoScene.add(surfSolid,surfWire,surfXray);
-  geoMeshes.push({solid:surfSolid,wire:surfWire,xray:surfXray,name:"surface"});
-
-  /* ── STRATA LAYERS ── */
-  STRATA.forEach((s,i)=>{
-    var geo=new THREE.BoxGeometry(W+2, s.h, D+2, segs, 1, dsegs);
-    /* displace top face vertices to match terrain-like waviness */
-    var sp=geo.attributes.position;
-    for(var v=0;v<sp.count;v++){
-      var yv=sp.getY(v);
-      if(yv>0){
-        var xn=sp.getX(v)/W, zn=sp.getZ(v)/D;
-        var wave=Math.sin(xn*Math.PI*2.5+i)*.6+Math.cos(zn*Math.PI*3+i*.7)*.5;
-        sp.setY(v, yv+wave);
-      }
-    }
-    sp.needsUpdate=true; geo.computeVertexNormals();
-    geo.translate(0, s.y - s.h/2, 0);
-
-    var solidM=new THREE.MeshPhongMaterial({color:s.col,transparent:true,opacity:.82,side:THREE.DoubleSide});
-    var wireM=new THREE.MeshBasicMaterial({color:s.wCol,wireframe:true,transparent:true,opacity:s.op+.04});
-    var xrayM=new THREE.MeshBasicMaterial({color:s.wCol,wireframe:true,transparent:true,opacity:s.op*.7});
-    var solid=new THREE.Mesh(geo,solidM);
-    var wire=new THREE.Mesh(geo,wireM);
-    var xray=new THREE.Mesh(geo,xrayM);
-    geoScene.add(solid,wire,xray);
-    geoMeshes.push({solid,wire,xray,name:s.name});
+  var W = 110, D = 90;
+  STRATA.forEach(s => {
+    var geo = new THREE.BoxGeometry(W, s.h, D);
+    var solid = new THREE.Mesh(geo, new THREE.MeshPhongMaterial({ color: s.col, transparent: true, opacity: s.op + .15 }));
+    var wire = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: s.wCol, wireframe: true, transparent: true, opacity: s.op + .05 }));
+    var xray = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: s.wCol, transparent: true, opacity: .04 }));
+    [solid, wire, xray].forEach(m => m.position.set(0, s.y - s.h / 2, 0));
+    geoScene.add(solid, wire, xray);
+    geoMeshes.push({ solid, wire, xray });
   });
 
-  /* ── ORE VEINS ── */
-  var veins=[
-    {ax:-30,ay:-88,az:-15, bx:15,by:-92,bz:10},
-    {ax:20,ay:-90,az:5,    bx:-5,by:-95,bz:-20},
-    {ax:-10,ay:-92,az:20,  bx:30,by:-88,bz:-5},
-    {ax:0,ay:-86,az:-10,   bx:-20,by:-94,bz:15},
+  var mines = mineData.length > 0 ? mineData : [
+    { id: 0, name: "Alpha Pit", tons: 1200 }, { id: 1, name: "Beta Shaft", tons: 3400 }, { id: 2, name: "Gamma Vein", tons: 800 }
   ];
-  veins.forEach(v=>{
-    var pts=[new THREE.Vector3(v.ax,v.ay,v.az),new THREE.Vector3(v.bx,v.by,v.bz)];
-    var curve=new THREE.CatmullRomCurve3([
-      pts[0],
-      new THREE.Vector3((v.ax+v.bx)/2+Math.random()*10-5,(v.ay+v.by)/2-4,(v.az+v.bz)/2+Math.random()*8-4),
-      pts[1]
-    ]);
-    var tubeGeo=new THREE.TubeGeometry(curve,16,.6,8,false);
-    var tubeSolid=new THREE.Mesh(tubeGeo,new THREE.MeshPhongMaterial({color:0xFFB830,emissive:0xFFB830,emissiveIntensity:.5,transparent:true,opacity:.85}));
-    var tubeWire=new THREE.Mesh(tubeGeo,new THREE.MeshBasicMaterial({color:0xFFB830,wireframe:true,transparent:true,opacity:.6}));
-    var tubeXray=new THREE.Mesh(tubeGeo,new THREE.MeshBasicMaterial({color:0xFFB830,transparent:true,opacity:.55}));
-    geoScene.add(tubeSolid,tubeWire,tubeXray);
-    geoMeshes.push({solid:tubeSolid,wire:tubeWire,xray:tubeXray,name:"vein"});
-  });
-  document.getElementById("geo-veins").textContent=veins.length;
+  document.getElementById("geo-mines").textContent = mines.length;
+  document.getElementById("geo-veins").textContent = mines.length * 2 + 1;
 
-  /* ── MINE SHAFTS + MARKERS ── */
-  var mines=mineData.length>0 ? mineData : [
-    {id:0,name:"McArthur River",tons:3400},{id:1,name:"Cigar Lake",tons:2800},
-    {id:2,name:"Rabbit Lake",tons:800},{id:3,name:"Athabasca",tons:1200},
-    {id:4,name:"Key Lake",tons:600}
-  ];
-  var maxT=Math.max(...mines.map(m=>m.tons),1);
+  mines.forEach((mine, i) => {
+    var sx = -35 + i * (70 / Math.max(mines.length - 1, 1));
+    var sz = -15 + (i % 2) * 30;
+    var depth = 70 + (mine.tons % 30);
+    var shaftGeo = new THREE.CylinderGeometry(1.2, 1.2, depth, 12);
+    var shaftWire = new THREE.Mesh(shaftGeo, new THREE.MeshBasicMaterial({ color: 0x00FFB8, wireframe: true, transparent: true, opacity: .55 }));
+    shaftWire.position.set(sx, -depth / 2, sz);
+    geoScene.add(shaftWire);
 
-  var shaftPositions=[
-    [-28,20],[-8,25],[20,18],[0,-10],[-18,-20],[30,-5],[12,-22],[-32,-8]
-  ];
-
-  mines.forEach((mine,i)=>{
-    var [sx,sz]=shaftPositions[i%shaftPositions.length];
-    var depth=80+Math.floor(mine.tons/maxT*40);
-
-    /* shaft cylinder */
-    var shaftGeo=new THREE.CylinderGeometry(.8,.8,depth,8);
-    var shaftSolid=new THREE.Mesh(shaftGeo,new THREE.MeshPhongMaterial({color:0x003322,transparent:true,opacity:.7}));
-    var shaftWire=new THREE.Mesh(shaftGeo,new THREE.MeshBasicMaterial({color:0x00FFB8,wireframe:true,transparent:true,opacity:.55}));
-    var shaftXray=new THREE.Mesh(shaftGeo,new THREE.MeshBasicMaterial({color:0x00FFB8,transparent:true,opacity:.3}));
-    [shaftSolid,shaftWire,shaftXray].forEach(m=>m.position.set(sx,-depth/2,sz));
-    geoScene.add(shaftSolid,shaftWire,shaftXray);
-    geoMeshes.push({solid:shaftSolid,wire:shaftWire,xray:shaftXray});
-
-    /* surface marker */
-    var markerGeo=new THREE.ConeGeometry(2, 5, 6);
-    var markerMat=new THREE.MeshPhongMaterial({color:0x00FFB8,emissive:0x00FFB8,emissiveIntensity:.7,transparent:true,opacity:.9});
-    var marker=new THREE.Mesh(markerGeo,markerMat);
-    marker.position.set(sx,4,sz);
-    marker.userData={name:mine.name||"Mine #"+mine.id, depth, tons:mine.tons};
+    var markerGeo = new THREE.ConeGeometry(2, 5, 6);
+    var markerMat = new THREE.MeshPhongMaterial({ color: 0x00FFB8, emissive: 0x00FFB8, emissiveIntensity: .7, transparent: true, opacity: .9 });
+    var marker = new THREE.Mesh(markerGeo, markerMat);
+    marker.position.set(sx, 4, sz);
     geoScene.add(marker);
-    geoMineMarkers.push({mesh:marker});
-
-    /* halo ring at surface */
-    var ringGeo=new THREE.TorusGeometry(2.8,.12,8,32);
-    var ringMat=new THREE.MeshBasicMaterial({color:0x00FFB8,transparent:true,opacity:.4});
-    var ring=new THREE.Mesh(ringGeo,ringMat);
-    ring.rotation.x=Math.PI/2; ring.position.set(sx,.5,sz);
-    geoScene.add(ring);
-
-    /* bottom ore chamber */
-    var chamberGeo=new THREE.SphereGeometry(2.5+mine.tons/maxT*2, 12, 8);
-    var chamberSolid=new THREE.Mesh(chamberGeo,new THREE.MeshPhongMaterial({color:0xFFB830,emissive:0xFFB830,emissiveIntensity:.4,transparent:true,opacity:.75}));
-    var chamberWire=new THREE.Mesh(chamberGeo,new THREE.MeshBasicMaterial({color:0xFFB830,wireframe:true,transparent:true,opacity:.5}));
-    var chamberXray=new THREE.Mesh(chamberGeo,new THREE.MeshBasicMaterial({color:0xFFB830,transparent:true,opacity:.35}));
-    [chamberSolid,chamberWire,chamberXray].forEach(m=>m.position.set(sx,-depth+4,sz));
-    geoScene.add(chamberSolid,chamberWire,chamberXray);
-    geoMeshes.push({solid:chamberSolid,wire:chamberWire,xray:chamberXray});
+    geoMineMarkers.push({ mesh: marker });
   });
-
-  document.getElementById("geo-mines").textContent=mines.length;
-  document.getElementById("geo-depth").textContent="0 – "+Math.round(STRATA[STRATA.length-1].y*-10)+"m";
-
-  /* ── GROUND GRID ── */
-  var grid=new THREE.GridHelper(W,20,0x00FFB8,0x002211);
-  grid.material.transparent=true; grid.material.opacity=.18;
-  geoScene.add(grid);
-
-  /* ── SCAN PLANE (animated x-ray pulse) ── */
-  var scanGeo=new THREE.PlaneGeometry(W, Math.abs(STRATA[STRATA.length-1].y)*1.1);
-  scanGeo.rotateZ(Math.PI/2);
-  var scanMat=new THREE.MeshBasicMaterial({color:0x00D4FF,transparent:true,opacity:.06,side:THREE.DoubleSide});
-  var scanPlane=new THREE.Mesh(scanGeo,scanMat);
-  scanPlane.userData.isScan=true;
-  scanPlane.position.set(-W/2,-40,0);
-  geoScene.add(scanPlane);
-
-  updateGeoMaterials();
 }
 
-function animateGeo(){
-  geoAnimFrame=requestAnimationFrame(animateGeo);
-  var T=Date.now()*.001;
-
-  if(geoScene){
-    /* orbit group rotation */
-    geoScene.rotation.y=geoControls.rotY;
-    geoScene.rotation.x=geoControls.rotX;
-    geoCamera.position.setLength(Math.max(80,Math.min(320, 160*geoControls.zoom)));
-
-    /* marker pulse */
-    geoMineMarkers.forEach((m,i)=>{
-      m.mesh.scale.setScalar(1+Math.sin(T*2+i*.7)*.1);
-      m.mesh.material.emissiveIntensity=.5+Math.sin(T*1.5+i)*.3;
-    });
-
-    /* scan plane sweep */
-    geoScanT=(geoScanT+.004)%1;
-    var scanW=120;
-    geoScene.traverse(obj=>{
-      if(obj.userData.isScan){
-        obj.position.x=-scanW/2+geoScanT*scanW;
-        obj.material.opacity=.04+Math.sin(geoScanT*Math.PI)*.07;
-      }
+function animateGeo() {
+  if (!isGeoVisible) return;
+  geoAnimFrame = requestAnimationFrame(animateGeo);
+  var T = Date.now() * .001;
+  if (geoScene) {
+    geoScene.rotation.y = geoControls.rotY + Math.sin(T * .1) * .1;
+    geoMineMarkers.forEach((m, i) => {
+      m.mesh.scale.setScalar(1 + Math.sin(T * 2 + i * .7) * .1);
     });
   }
-
-  if(geoRenderer&&geoScene&&geoCamera) geoRenderer.render(geoScene,geoCamera);
+  if (geoRenderer && geoScene && geoCamera) geoRenderer.render(geoScene, geoCamera);
 }
 
-function cleanupGeo(){
-  if(geoAnimFrame){cancelAnimationFrame(geoAnimFrame);geoAnimFrame=null;}
-  if(geoRenderer){geoRenderer.dispose();geoRenderer=null;}
-  geoScene=null;geoCamera=null;geoMeshes=[];geoMineMarkers=[];
+function cleanupGeo() {
+  if (geoAnimFrame) { cancelAnimationFrame(geoAnimFrame); geoAnimFrame = null; }
+  if (geoRenderer) { geoRenderer.dispose(); geoRenderer = null; }
+  geoScene = null; geoCamera = null; geoMeshes = []; geoMineMarkers = [];
 }
 
-/* ══ INIT ══ */
-/* init globe immediately — no wallet needed */
-window.addEventListener("load", function(){
-  if(!window.ethereum) document.getElementById("noMM").classList.add("show");
-  document.getElementById("connectBtn").onclick   = connectWallet;
+/* ══ VISIBILITY OBSERVER FOR GPU OPTIMIZATION ══ */
+function setupVisibilityObserver() {
+  var observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.target.id === "globeOuter") {
+        isGlobeVisible = entry.isIntersecting;
+        if (isGlobeVisible && !globeAnimFrame) animateGlobe();
+      } else if (entry.target.id === "mineMapWrap") {
+        is3DVisible = entry.isIntersecting;
+        if (is3DVisible && !animFrame) animate3D();
+      } else if (entry.target.id === "geoOuter") {
+        isGeoVisible = entry.isIntersecting;
+        if (isGeoVisible && !geoAnimFrame) animateGeo();
+      }
+    });
+  }, { threshold: 0.1 });
+
+  ["globeOuter", "mineMapWrap", "geoOuter"].forEach(id => {
+    var el = document.getElementById(id);
+    if (el) observer.observe(el);
+  });
+}
+
+/* ══ DOM LOAD & BINDINGS ══ */
+window.addEventListener("load", function () {
+  if (!window.ethereum) document.getElementById("noMM").classList.add("show");
+
+  document.getElementById("soundBtn").onclick = function() {
+    var enabled = ZUC.Audio.toggle();
+    this.textContent = enabled ? "🔊 SFX ON" : "🔇 SFX OFF";
+    this.classList.toggle("on", enabled);
+  };
+
+  document.getElementById("hudModalClose").onclick = hideHudModal;
+  document.getElementById("hudModalCancel").onclick = hideHudModal;
+  document.getElementById("hudModalConfirm").onclick = function() {
+    if (hudConfirmCallback) hudConfirmCallback();
+  };
+
+  document.getElementById("connectBtn").onclick = connectWallet;
   document.getElementById("loadIntelBtn").onclick = loadIntelligence;
-  document.getElementById("mineInfoBtn").onclick  = getMineInfo;
-  document.getElementById("getMinerBtn").onclick  = getMiner;
+  document.getElementById("mineInfoBtn").onclick = getMineInfo;
+  document.getElementById("getMinerBtn").onclick = getMiner;
   document.getElementById("getReservesBtn").onclick = getReserves;
-  document.getElementById("addMinerBtn").onclick  = addMiner;
-  document.getElementById("storeResBtn").onclick  = storeReserves;
-  document.getElementById("setNameBtn").onclick   = setMineName;
-  document.getElementById("transferBtn").onclick  = transferOwnership;
-  requestAnimationFrame(function(){
-    requestAnimationFrame(function(){
+  document.getElementById("addMinerBtn").onclick = addMiner;
+  document.getElementById("storeResBtn").onclick = storeReserves;
+  document.getElementById("setNameBtn").onclick = setMineName;
+  document.getElementById("transferBtn").onclick = transferOwnership;
+
+  requestAnimationFrame(function () {
+    requestAnimationFrame(function () {
       init3DMap();
       initGlobe();
       setTimeout(initGeoViewer, 80);
+      setupVisibilityObserver();
     });
   });
-  log("ZUC Command Center ready. Click Initialize to connect.", "if");
+
+  initReadOnly();
+  log("ZUC Command Center v2.0 active. Read-only live telemetry initialized.", "if");
 });
-
-/* patch loadIntelligence to rebuild globe after data is ready */
-var _loadIntelOrig=loadIntelligence;
-loadIntelligence=async function(){
-  await _loadIntelOrig();
-  buildGlobeNetwork();
-  document.getElementById("g-mines").textContent=mineData.length;
-  document.getElementById("g-miners").textContent=minerData.length;
-  document.getElementById("g-ore").textContent=minerData.reduce((a,m)=>a+m.ore,0).toLocaleString();
-  document.getElementById("g-conns").textContent=globeEdges.length;
-  buildGeoTerrain();
-};
-
-/* fire a tx pulse on every confirmed tx */
-var _runTxOrig=runTx;
-runTx=async function(opts){
-  var patched={...opts,onSuccess:(tx)=>{
-    if(opts.onSuccess)opts.onSuccess(tx);
-    for(var i=0;i<4;i++)setTimeout(spawnTxPulse,i*180);
-  }};
-  await _runTxOrig(patched);
-};
-
-if(!window.ethereum)document.getElementById("noMM").classList.add("show");
-document.getElementById("connectBtn").onclick=connectWallet;
-document.getElementById("loadIntelBtn").onclick=loadIntelligence;
-document.getElementById("mineInfoBtn").onclick=getMineInfo;
-document.getElementById("getMinerBtn").onclick=getMiner;
-document.getElementById("getReservesBtn").onclick=getReserves;
-document.getElementById("addMinerBtn").onclick=addMiner;
-document.getElementById("storeResBtn").onclick=storeReserves;
-document.getElementById("setNameBtn").onclick=setMineName;
-document.getElementById("transferBtn").onclick=transferOwnership;
 </script>
 </body>
 </html>

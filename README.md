@@ -62,124 +62,37 @@ In practice, this functions as a **blockchain-native command center**, where the
 
 ---
 
-## Features
+## Features & v2.0 Architecture
 
-### Blockchain
-- ✅ Live contract deployed at `0x22ACA8269801bF50d96c7e7F296c11799597bE31`
-- ✅ All read functions queried on wallet connect (miners, reserves, mine names, owner)
-- ✅ All write functions exposed with full 4-step transaction lifecycle (estimate gas → broadcast → mine → confirm)
-- ✅ Auto chain detection — prompts MetaMask to switch to XRPL EVM Testnet if on wrong network
-- ✅ Real-time event feed via ethers.js provider
-- ✅ Live block number and gas price monitoring
+### Blockchain & Smart Contract (`ZUCMineV2.sol`)
+- ✅ **Role-Based Access Control (`RBAC`)**: Flexible `ADMIN_ROLE`, `ORACLE_ROLE`, and `OPERATOR_ROLE` replacing coarse single-owner controls.
+- ✅ **Multi-Metric Mine Telemetry**: Tracks reserve tonnage, daily extraction rates, radiation levels (PPM), active labor, and operational status.
+- ✅ **$ZUC Raw Ore Tokenomics**: ERC-20 token emissions awarded directly to registered miners upon verified extraction events.
+- ✅ **Multicall & Batch Reading**: `getMinersBatch()` and `getAllTelemetry()` APIs eliminate RPC polling exceptions.
+- ✅ **Live Contract Interoperability**: Fully backward compatible with deployed `ZUCMine.sol` at `0x22ACA8269801bF50d96c7e7F296c11799597bE31`.
 
-### Dashboard
-
-- ✅ Three.js interactive globe showing node topology
-
-![ScreenRecorderProject33_1](https://github.com/user-attachments/assets/59b8784e-867c-4c1f-b4e5-0c53335e3365)
-
-
-- ✅ Three.js 3D mine network map with animated node connection
-  
-![ScreenRecorderProject34](https://github.com/user-attachments/assets/f67c1198-ab50-4f40-b248-d48a81532643)
-
-- ✅ Three.js geological terrain viewer with ore deposit simulation
-  
-![ScreenRecorderProject36](https://github.com/user-attachments/assets/3d51411e-790b-453d-a9cf-cabe842b0713)
-
-
-### 📊 ANALYTICS STATIC
-<img width="1419" height="1148" alt="chrome_H72zKAx6lm" src="https://github.com/user-attachments/assets/c9374b88-afb1-4704-a7e5-fd98417255c3" />
-
-
-- ✅ Chart.js reserve history charts with live updates
-- ✅ Cyberpunk dark theme — neon accents, scanlines, beam animations, depth glow
-- ✅ Responsive layout (desktop + mobile)
-- ✅ On-chain transaction log feed with explorer links
-- ✅ Network health indicators (block time, gas, chain ID, RPC status)
-
-## On-Chain Command Execution
-This interface allows direct execution of contract write functions via MetaMask, exposing the full transaction lifecycle from initiation to confirmation.
-
-<img width="2170" height="1275" alt="chrome_LLmjl54pGL" src="https://github.com/user-attachments/assets/eed28c02-369f-4988-8fad-0b1c1e5a3dd6" />
+### Dashboard & UI/UX v2.0
+- ✅ **Web Audio SFX Synthesizer**: Zero-dependency Web Audio API procedural sound engine providing tactile audio feedback for clicks, scans, tx broadcasts, and block confirmations with a top-bar mute toggle.
+- ✅ **Fallback JSON-RPC Provider**: Immediate read-only data auto-hydration on page load without requiring a wallet connection.
+- ✅ **Sci-Fi Glassmorphism HUD Modals**: Custom confirmation modals with gas breakdowns replacing native browser popups.
+- ✅ **WebGL GPU Throttling**: `IntersectionObserver` canvas monitor to pause off-screen 3D animation loops.
+- ✅ **Three.js Visualizations**: Interactive Node Topology Globe, 3D Spatial Mine Map, and Subsurface Geology Wireframe.
 
 ---
 
-## Contract — `ZUCMine.sol`
+## Contract Systems — `ZUCMine.sol` & `ZUCMineV2.sol`
 
-**Deployed:** `0x22ACA8269801bF50d96c7e7F296c11799597bE31`
-**Network:** XRPL EVM Sidechain Testnet (Chain ID: `1449000`)
+**Deployed:** `0x22ACA8269801bF50d96c7e7F296c11799597bE31`  
+**Network:** XRPL EVM Sidechain Testnet (Chain ID: `1449000`)  
 **Compiler:** Solidity `0.8.24`
 
-### Write Functions
-```solidity
-addMiner(string _name, uint256 _oreMined)
-// Register a new miner with their cumulative ore production.
-// onlyOwner. Emits MinerAdded.
-
-setMineName(uint256 _mineId, string _name)
-// Set or update the display name of a mine.
-// onlyOwner. Emits MineNameSet.
-
-storeReserves(uint256 _mineID, uint256 _tons)
-// Record current ore reserves for a mine in tons.
-// onlyOwner. Emits ReservesStored.
-
-transferOwnership(address _newOwner)
-// Transfer contract ownership to a new address.
-// onlyOwner. Reverts on zero address.
-```
-
-### Read Functions
-```solidity
-getMineInfo(uint256 _mineId) → (uint256 tons, string name)
-// Returns reserve tonnage and name for a mine.
-
-getMiner(uint256 _minerID) → Miner(id, name, oreMined)
-// Returns full miner struct.
-
-getReserves(uint256 _mineID) → uint256
-// Returns ore reserve tonnage.
-
-owner() → address
-miners(uint256) → Miner
-mineNames(uint256) → string
-mineReserves(uint256) → uint256
-minerCount() → uint256
-```
-
-### Solidity Patterns Used
-| Pattern | Implementation |
-|---------|---------------|
-| `onlyOwner` modifier | Gates all write functions |
-| Custom errors | `NotOwner()`, `ZeroAddress()` — gas efficient vs `require` strings |
-| Indexed events | `MinerAdded`, `MineNameSet`, `ReservesStored`, `OwnershipTransferred` |
-| Struct storage | `Miner` struct in mapping |
-| View functions | All reads are `view` — zero gas cost |
-
----
-
-## Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| Blockchain | XRPL EVM Sidechain Testnet |
-| Smart Contract | Solidity 0.8.24 |
-| Web3 Provider | Ethers.js v5 (CDN) |
-| 3D Visualisation | Three.js r128 (CDN) |
-| Charts | Chart.js 4.4.1 (CDN) |
-| Frontend | Vanilla HTML/CSS/JS — zero build step |
-| Fonts | Orbitron, Rajdhani (Google Fonts) |
-| Hosting | Vercel |
-
----
-
-## Project Structure
+### Project Structure
 
 ```
 zuc-mine-command-center/
-├── index.html                     ← Full dashboard (single file)
-├── ZUCMine.sol                    ← Deployed Solidity contract
+├── index.html                     ← Full Command Center v2.0 Dashboard
+├── ZUCMine.sol                    ← Deployed V1 Solidity contract
+├── ZUCMineV2.sol                  ← Upgraded V2 Solidity contract (RBAC + Telemetry + ERC-20)
 ├── .github/
 │   └── workflows/
 │       └── deploy.yml             ← Auto-deploy to GitHub Pages on push
